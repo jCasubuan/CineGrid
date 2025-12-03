@@ -3,7 +3,6 @@ body{
     color: white;
     padding-top: 56px;
     scroll-padding-top: 70px;
-    transition: background-color 0.3s ease, color 0.3s ease;
 }
 .movie-card {
     border: 1px solid #333; 
@@ -13,7 +12,7 @@ body{
     transform: translateY(-5px);
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
-.movie-card img {
+.media-card img {
     height: 320px;
     object-fit: cover;
 }
@@ -40,96 +39,40 @@ body{
 #loginModal .modal-footer a {
     color: var(--bs-primary) !important; 
 }
-/* --- LIGHT MODE STYLES --- */
-.light-mode {
-    background-color: #f8f9fa; /* Light Gray/White Background */
-    color: #212529;             /* Dark Text */
+/* Featured Slider Style */
+.hero-slide {
+    height: 75vh;
+    background-size: cover;
+    background-position: center;
+    position: relative;
 }
 
-/* 1. Change Navbar to Light */
-.light-mode .navbar-dark {
-    --bs-navbar-color: rgba(0, 0, 0, 0.55);
-    --bs-navbar-bg: #f8f9fa; 
-    --bs-navbar-hover-color: rgba(0, 0, 0, 0.7);
-    --bs-navbar-active-color: rgba(0, 0, 0, 0.9);
-}
-.light-mode .navbar-brand {
-    color: #212529 !important;
-}
-.light-mode .nav-link {
-    color: rgba(0, 0, 0, 0.55) !important;
+.hero-slide .hero-overlay {
+    background: rgba(0, 0, 0, 0.55);
+    padding: 60px;
+    border-radius: 8px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
 }
 
-/* 2. Change Movie Cards to Light */
-.light-mode .movie-card {
-    background-color: white !important;
-    color: #212529 !important;
-    border-color: #ccc;
-}
-.light-mode .card-body {
-    background-color: white !important;
-}
-
-/* 3. Change Modal (Search Box & Login) to Light */
-.light-mode .modal-content {
-    background-color: white !important;
-    color: #212529 !important;
-}
-.light-mode .btn-close-white {
-    filter: none; 
-}
-.light-mode #loginModal .form-control {
+/* Carousel indicators (bullets) */
+.carousel-indicators [data-bs-target] {
+    width: 12px;
+    height: 12px;
     background-color: white;
-    color: #212529;
-    border: 1px solid #ccc;
+    opacity: 0.5;
+    border-radius: 50%;
 }
-.light-mode #loginModal .form-label {
-    color: #212529; 
+
+.carousel-indicators .active {
+    opacity: 1;
 }
-.light-mode .navbar-dark .navbar-brand,
-.light-mode .navbar-dark .nav-link,
-.light-mode .navbar-dark .btn-outline-light {
-    color: white !important;
-    border-color: white !important;
-}
-.light-mode .navbar-toggler-icon {
-    filter: invert(1);
-}
-.light-mode .dropdown-menu-dark .dropdown-item {
-    color: #f8f9fa !important;
-}
-.light-mode .dropdown-menu-dark .dropdown-item:hover {
-    background-color: #333 !important;
-}
-.light-mode footer {
-    color: white !important;
-}
-.light-mode #modeToggle:hover i {
-    color: #212529 !important; 
-}
-.light-mode #modeToggle:hover {
-    color: #212529 !important;
-}
-.light-mode #loginModal .modal-footer .text-muted {
-    color: #6c757d !important; 
-}
-.light-mode #loginModal .modal-footer a {
-    color: #007bff !important; 
-}
-.light-mode .btn-outline-light:hover,
-.light-mode .btn-outline-light:hover i {
-    color: #212529 !important; 
-    border-color: #212529 !important;
-}
-#signupModal .modal-footer .text-muted {
-    color: #f8f9fa !important; 
-}
-#signupModal .modal-footer a {
-    color: var(--bs-primary) !important; 
-}
-.light-mode #signupModal .modal-footer .text-muted {
-    color: #6c757d !important; 
-}
-.light-mode #signupModal .modal-footer a {
-    color: #007bff !important; 
+
+/* Arrows */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: invert(1); /* makes arrows white */
 }
