@@ -1,50 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Title | CineGrid</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Movie Title | CineGrid</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-dark text-white">
+        <!-- BootStrap 5 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="index.html">CineGrid</a>
-        </div>
-    </nav>
+        <link rel="stylesheet" href="main.css">
+    </head>
+    <body>
 
-    <div class="container mt-5 pt-5">
-        <div class="row">
+        <!-- NAVBAR -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+            <div class="container">
+                <a class="navbar-brand fw-bold" href="home.html">CineGrid</a>
 
-            <!-- Poster -->
-            <div class="col-md-4">
-                <img src="https://via.placeholder.com/400x600" class="img-fluid rounded" alt="Poster">
+                <!-- hamburger menu button -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    
+                    <!-- Home as button -->
+                    <ul class="navbar-nav ms-auto me-3">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="home.html">Home</a>
+                        </li>
+
+                        <!-- Dropdown list -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Explore
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark">
+                                <li><a class="dropdown-item" href="#">Trending</a></li>
+                                <li><a class="dropdown-item" href="movies.html">Popular Movies</a></li>
+                                <li><a class="dropdown-item" href="series.html">Popular Series</a></li>
+                                <li><a class="dropdown-item" href="#">Top Actors</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#">Upcoming Releases</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Search button -->
+                <button class="btn btn-sm btn-outline-light d-flex align-items-center me-2" 
+                        type="button" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#searchModal">
+                    <i class="bi bi-search me-1"></i> Search
+                </button> 
+
+                <!-- Login button -->
+                <button class="btn btn-sm btn-outline-light d-flex align-items-center me-2"
+                        type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#loginModal">
+                    <i class="bi bi-person-circle me-1"></i> Login
+                </button>
+                
             </div>
+        </nav>
 
-            <!-- Movie Details -->
-            <div class="col-md-8">
-                <h1>Movie Title</h1>
-                <p class="text-muted">Action • 2024 • 2h 10m</p>
+        <div class="container my-5">
+            <div class="row">
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. This is the movie synopsis section where the description will go.</p>
+                <!-- Movie Poster -->
+                <div class="col-6 col-md-3">
+                    <div class="card media-card bg-dark text-white">
+                        <img src="https://via.placeholder.com/300x450" class="card-img-top" alt="Movie">
+                    </div>
+                </div>
 
-                <h4 class="mt-4">Cast</h4>
-                <ul>
-                    <li>Actor 1</li>
-                    <li>Actor 2</li>
-                    <li>Actor 3</li>
-                </ul>
+                <!-- Movie Details -->
+                <div class="col-12 col-md-9">
+                    <h1>Movie Title</h1>
+                    <p class="text-muted">Action • 2024 • 2h 10m</p>
 
-                <h4 class="mt-4">Director</h4>
-                <p>John Doe</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. This is the movie synopsis section where the description will go.</p>
+
+                    <h4 class="mt-4">Cast</h4>
+                    <ul>
+                        <li>Actor 1</li>
+                        <li>Actor 2</li>
+                        <li>Actor 3</li>
+                    </ul>
+
+                    <h4 class="mt-4">Director</h4>
+                    <p>John Doe</p>
+                </div>
+
             </div>
-
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+        <!-- footer -->
+        <footer class="bg-dark text-center py-3">
+            <p class="mb-0">© 2025 CineGrid. All rights reserved.</p>
+        </footer>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+            crossorigin="anonymous"></script>
+            
+    </body>
 </html>

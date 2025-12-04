@@ -1,122 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineGrid | Your Account</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CineGrid | Your Account</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+            <!-- BootStrap 5 CSS -->
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+                integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <link rel="stylesheet" href="main.css"> 
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="home-account.html">CineGrid</a>
+            <link rel="stylesheet" href="main.css">
+    </head>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+    <body>
+        <!-- NAVBAR -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+            <div class="container">
+                <a class="navbar-brand fw-bold" href="login-home.html">CineGrid</a>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Hamburger Menu Button -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle Navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    
+                    <!-- Navigation links -->
+                    <ul class="navbar-nav ms-auto me-3">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="login-home.html">Home</a>
+                        </li>
+
+                        <!-- Exploration dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" 
+                                aria-expanded="false" id="explorDropdown">
+                                Explore
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="explorDropdown">
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-fire me-2"></i> Trending</a></li>
+                                    <li><a class="dropdown-item" href="movies.html"><i class="bi bi-film me-2"></i> Popular Movies</a></li>
+                                    <li><a class="dropdown-item" href="series.html"><i class="bi bi-tv me-2"></i>Popular Series</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-star me-2"></i>Top Actors</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-calendar-event me-2"></i>Upcoming Releases</a></li>
+                                </ul>
+                        </li>
+                    </ul>
+                </div>
                 
-                <ul class="navbar-nav ms-auto me-3">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="home-account.html">Home</a>
-                    </li>
+                <!-- Action buttons -->
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-light d-flex align-items-center" 
+                            type="button" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#searchModal"
+                            aria-label="Search movies and series">
+                        <i class="bi bi-search me-1"></i> Search
+                    </button> 
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Explore
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-dark">
-                            <li><a class="dropdown-item" href="movies.html">Movies</a></li> 
-                            <li><a class="dropdown-item" href="#">Series</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">People</a></li>
-                        </ul>
-                    </li>
-                </ul>
+                    <!-- profile button -->
+                    <a href="profile.html" class="btn btn-sm btn-outline-light d-flex align-items-center">
+                        <i class="bi bi-person-fill me-1"></i> Profile
+                    </a>
+                </div>
             </div>
-            
-            <button class="btn btn-sm btn-outline-light d-flex align-items-center me-2" 
-                    type="button" 
-                    data-bs-toggle="modal" 
-                    data-bs-target="#searchModal">
-                <i class="bi bi-search me-1"></i> Search
-            </button> 
+        </nav>
 
-            <a href="profile.html" class="btn btn-sm btn-outline-light d-flex align-items-center me-2" type="button">
-                <i class="bi bi-person-fill me-1"></i> Profile
-            </a>
-            
-        </div>
-    </nav>
-    <main>
-        <div class="container my-5 pt-5">
-            <h1 class="display-5 fw-bold text-white mb-4">Welcome Back, [User Name]!</h1>
-            <p class="lead text-white-50">Track your progress, view your ratings, and discover new titles.</p>
+        <!-- Main content -->
+        <main>
+            <div class="container my-5 pt-5">
+                <!-- Welcome section -->
+                <h1 class="display-5 fw-bold text-white mb-4">Welcome Back, [User Name]!</h1>
+                <p class="lead text-white-50">Track your progress, view your ratings, and discover new titles.</p>
 
-            <hr class="text-white-50 my-5">
+                <hr class="text-white-50 my-5">
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0 text-white">Recently Rated</h2>
-                <a href="#" class="btn btn-outline-light btn-sm">See All Ratings</a>
-            </div>
-            <div class="row row-cols-2 row-cols-md-4 g-4 mb-5">
-                <div class="col">
-                    <div class="card movie-card bg-dark text-white">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0 text-white">Recently Rated</h2>
+                    <a href="#" class="btn btn-outline-light btn-sm">See All Ratings</a>
+                </div>
+                <div class="row row-cols-2 row-cols-md-4 g-4 mb-5">
+                    <div class="col">
+                        <div class="card movie-card bg-dark text-white">
+                            <a href="#" class="text-decoration-none">
+                                <img src="https://via.placeholder.com/300x450" class="card-img-top" alt="Media">
+                                <div class="card-body">
+                                    <h5 class="card-title">Rated Title</h5>
+                                    <p class="card-text text-warning"><i class="bi bi-star-fill"></i> 9 / 10</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    </div>
+
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0 text-white">Your Watchlist</h2>
+                    <a href="#" class="btn btn-outline-light btn-sm">See Full List <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+                <div class="row row-cols-2 row-cols-md-4 g-4 mb-5">
+                    <div class="col">
                         <a href="#" class="text-decoration-none">
-                            <img src="https://via.placeholder.com/300x450" class="card-img-top" alt="Media">
-                            <div class="card-body">
-                                <h5 class="card-title">Rated Title</h5>
-                                <p class="card-text text-warning"><i class="bi bi-star-fill"></i> 9 / 10</p>
+                            <div class="card movie-card bg-dark text-white">
+                                <img src="https://via.placeholder.com/300x450" class="card-img-top" alt="Watchlist Item">
+                                <div class="card-body">
+                                    <h5 class="card-title">Watchlist Movie</h5>
+                                    <p class="card-text">To Watch • 2024</p>
+                                </div>
                             </div>
                         </a>
                     </div>
-                </div>
-                </div>
+                    </div>
 
-
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0 text-white">Your Watchlist</h2>
-                <a href="#" class="btn btn-outline-light btn-sm">See Full List <i class="bi bi-arrow-right ms-1"></i></a>
             </div>
-            <div class="row row-cols-2 row-cols-md-4 g-4 mb-5">
-                <div class="col">
-                    <a href="#" class="text-decoration-none">
-                        <div class="card movie-card bg-dark text-white">
-                            <img src="https://via.placeholder.com/300x450" class="card-img-top" alt="Watchlist Item">
-                            <div class="card-body">
-                                <h5 class="card-title">Watchlist Movie</h5>
-                                <p class="card-text">To Watch • 2024</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                </div>
+        </main>
 
-        </div>
-    </main>
+            <!-- footer -->
+            <footer class="bg-dark text-center py-3">
+                <p class="mb-0">© 2025 CineGrid. All rights reserved.</p>
+            </footer>
 
-    <footer class="bg-dark text-center py-3 mt-5">
-        <p class="mb-0 text-white">© 2025 CineGrid. All rights reserved.</p>
-    </footer>
-
-    <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="searchModalLabel">Search CineGrid</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="text" class="form-control form-control-lg" placeholder="Start typing a movie, series, or actor...">
+        <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content bg-dark text-white">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title" id="searchModalLabel">Search CineGrid</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" class="form-control form-control-lg" placeholder="Start typing a movie, series, or actor...">
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+        
+        <!-- Bootstrap JS -->
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+                crossorigin="anonymous"></script>
+                
+    </body>
 </html>
