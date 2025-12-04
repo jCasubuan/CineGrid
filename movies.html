@@ -1,45 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineGrid | Movies</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CineGrid | Movies</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+        <!-- BootStrap 5 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <link rel="stylesheet" href="main.css"> 
+        <link rel="stylesheet" href="main.css">
 
-</head>
-<body class="bg-dark text-white">
+    </head>
+    <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="index.html">CineGrid</a>
-        </div>
-    </nav>
+        <!-- NAVBAR -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+            <div class="container">
+                <a class="navbar-brand fw-bold" href="home.html">CineGrid</a>
 
-    <div class="container mt-5 pt-4">
-        <h2 class="mt-4 mb-4">All Movies</h2>
+                <!-- hamburger menu button -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-        <div class="row row-cols-2 row-cols-md-4 g-4">
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    
+                    <!-- Home as button -->
+                    <ul class="navbar-nav ms-auto me-3">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="home.html">Home</a>
+                        </li>
 
-            <div class="col">
-                <a href="movie-details.html" class="text-decoration-none">
-                    <div class="card bg-dark text-white movie-card">
-                        <img src="https://via.placeholder.com/300x450" class="card-img-top" alt="Movie">
-                        <div class="card-body">
-                            <h5 class="card-title">Movie Title</h5>
-                            <p class="card-text">Action • 2024</p>
+                        <!-- Dropdown list -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Explore
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark">
+                                <li><a class="dropdown-item" href="#">Trending</a></li>
+                                <li><a class="dropdown-item" href="movies.html">Popular Movies</a></li>
+                                <li><a class="dropdown-item" href="series.html">Popular Series</a></li>
+                                <li><a class="dropdown-item" href="#">Top Actors</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#">Upcoming Releases</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Search button -->
+                <button class="btn btn-sm btn-outline-light d-flex align-items-center me-2" 
+                        type="button" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#searchModal">
+                    <i class="bi bi-search me-1"></i> Search
+                </button> 
+
+                <!-- Login button -->
+                <button class="btn btn-sm btn-outline-light d-flex align-items-center me-2"
+                        type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#loginModal">
+                    <i class="bi bi-person-circle me-1"></i> Login
+                </button>
+                
+            </div>
+        </nav>
+
+        <!-- Movie list section -->
+        <div class="container my-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">All Movies</h2>
+            </div>
+
+             <!-- 2 columns on mobile, 4 on desktop -->
+            <div class="row row-cols-2 row-cols-md-4 g-4">
+
+                <!-- movie cards -->
+                <div class="col">
+                    <a href="movie-details.html" class="text-decoration-none">
+                        <div class="card media-card bg-dark text-white">
+                            <img src="https://via.placeholder.com/300x450" class="card-img-top" alt="Movie">
+                            <div class="card-body">
+                                <h5 class="card-title">Movie Title</h5>
+                                <p class="card-text">Action • 2024</p>
+                            </div>
                         </div>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
 
             </div>
-    </div>
+        </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+        <!-- footer -->
+        <footer class="bg-dark text-center py-3">
+            <p class="mb-0">© 2025 CineGrid. All rights reserved.</p>
+        </footer>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+            crossorigin="anonymous"></script>
+
+    </body>
 </html>

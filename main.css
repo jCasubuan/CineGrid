@@ -36,8 +36,8 @@ body{
 #loginModal .modal-footer .text-muted {
     color: #f8f9fa !important;
 }
-#loginModal .modal-footer a {
-    color: var(--bs-primary) !important; 
+#signupModal .modal-footer .text-muted {
+    color: #f8f9fa !important;
 }
 /* Featured Slider Style */
 .hero-slide {
