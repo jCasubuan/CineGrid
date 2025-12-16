@@ -1,47 +1,73 @@
-body{
+body {
     background-color: #0d0d0d;
     color: white;
     padding-top: 56px;
     scroll-padding-top: 70px;
 }
+
 .movie-card {
-    border: 1px solid #333; 
-    transition: transform 0.2s ease;
+    border: 1px solid #333;
+
+    transition: all 0.3s ease;
+    overflow: hidden;
 }
+
 .movie-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
+
 .media-card img {
     height: 320px;
     object-fit: cover;
+    transition: transform 0.3s ease;
 }
 
+.media-card {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.media-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.media-card img {
+    transition: transform 0.3s ease;
+}
+
+/* for hero css */
 .hero {
     background: url('banner.jpg') center/cover no-repeat;
     padding: 120px 20px;
     position: relative;
 }
+
 .hero-overlay {
     background: rgba(0, 0, 0, 0.6);
     padding: 60px;
     border-radius: 8px;
 }
+
 .shortcut-tag {
     font-size: 0.75rem;
     font-weight: 600;
     padding: 4px 8px;
     border-left: none;
 }
+
 #loginModal .modal-footer .text-muted {
     color: #f8f9fa !important;
 }
+
 #signupModal .modal-footer .text-muted {
     color: #f8f9fa !important;
 }
+
 /* Featured Slider Style */
 .hero-slide {
-    height: 75vh;
+    height: 600px;
     background-size: cover;
     background-position: center;
     position: relative;
@@ -56,6 +82,38 @@ body{
     left: 50%;
     transform: translate(-50%, -50%);
     width: 60%;
+}
+
+.hero-overlay h1 {
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.hero-overlay p {
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+    animation: fadeInUp 1s ease-out;
+}
+
+.hero-overlay .btn {
+    animation: fadeInUp 1.2s ease-out;
+    transition: all 0.3s ease;
+}
+
+.hero-overlay .btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Carousel indicators (bullets) */
@@ -74,5 +132,84 @@ body{
 /* Arrows */
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
-    filter: invert(1); /* makes arrows white */
+    filter: invert(1);
+    /* makes arrows white */
+}
+
+/* Rating Badge */
+.rating-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+* Quick Stats Section */ .stats-section {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-radius: 15px;
+    padding: 40px 20px;
+    margin: 60px 0;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Section Headers */
+.section-header {
+    position: relative;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+}
+
+.section-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 3px;
+}
+
+/* Scroll to Top Button */
+.scroll-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.scroll-top:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+.scroll-top.show {
+    display: flex;
 }

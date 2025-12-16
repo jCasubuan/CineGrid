@@ -1,113 +1,942 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Movie Title | CineGrid</title>
 
-        <!-- BootStrap 5 CSS -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-            integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Watch and review Movie Title on CineGrid">
+    <title>The Dark Knight (2008) | CineGrid</title>
 
-        <link rel="stylesheet" href="main.css">
-    </head>
-    <body>
+    <!-- BootStrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-        <!-- NAVBAR -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-            <div class="container">
-                <a class="navbar-brand fw-bold" href="home.html">CineGrid</a>
+    <link rel="stylesheet" href="main.css">
 
-                <!-- hamburger menu button -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+    <style>
+        /* Hero Banner Section */
+        .movie-hero {
+            height: 60vh;
+            min-height: 400px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            margin-top: 56px;
+        }
 
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    
-                    <!-- Home as button -->
-                    <ul class="navbar-nav ms-auto me-3">
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="home.html">Home</a>
-                        </li>
+        .movie-hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(13, 13, 13, 1) 0%, rgba(13, 13, 13, 0.7) 50%, rgba(13, 13, 13, 0.3) 100%);
+        }
 
-                        <!-- Dropdown list -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Explore
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-dark">
-                                <li><a class="dropdown-item" href="#">Trending</a></li>
-                                <li><a class="dropdown-item" href="movies.html">Popular Movies</a></li>
-                                <li><a class="dropdown-item" href="series.html">Popular Series</a></li>
-                                <li><a class="dropdown-item" href="#">Top Actors</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#">Upcoming Releases</a></li>
-                            </ul>
-                        </li>
-                    </ul>
+        /* Floating Poster */
+        .floating-poster {
+            margin-top: -150px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* Rating Circle */
+        .rating-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(#4caf50 0% 87%, #ddd 87% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .rating-circle::before {
+            content: '';
+            width: 65px;
+            height: 65px;
+            background: #0d0d0d;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .rating-value {
+            position: relative;
+            z-index: 1;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4caf50;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Cast Cards */
+        .cast-card {
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .cast-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .cast-avatar {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        /* Review Card */
+        .review-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .review-rating {
+            color: #ffc107;
+        }
+
+        /* Trailer Container */
+        .trailer-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        .trailer-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            border-radius: 20px;
+            margin: 4px;
+            font-size: 0.875rem;
+        }
+
+        /* Stats Badge */
+        .stat-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        /* Light Mode Adjustments */
+        .light-mode .review-card {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .light-mode .tag {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .light-mode .stat-badge {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .light-mode .rating-circle::before {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <!-- Logo with Icon -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="home.html">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="32" height="32" class="me-2">
+                    <rect x="40" y="50" width="120" height="100" fill="none" stroke="#667eea" stroke-width="4" rx="8" />
+                    <line x1="100" y1="50" x2="100" y2="150" stroke="#667eea" stroke-width="4" />
+                    <line x1="40" y1="100" x2="160" y2="100" stroke="#667eea" stroke-width="4" />
+                    <rect x="30" y="60" width="8" height="12" fill="#667eea" rx="2" />
+                    <rect x="30" y="94" width="8" height="12" fill="#667eea" rx="2" />
+                    <rect x="30" y="128" width="8" height="12" fill="#667eea" rx="2" />
+                    <rect x="162" y="60" width="8" height="12" fill="#667eea" rx="2" />
+                    <rect x="162" y="94" width="8" height="12" fill="#667eea" rx="2" />
+                    <rect x="162" y="128" width="8" height="12" fill="#667eea" rx="2" />
+                    <polygon points="90,80 90,120 120,100" fill="#667eea" />
+                </svg>
+                CineGrid
+            </a>
+
+            <!-- Hamburger Menu Button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Navigation Links -->
+                <ul class="navbar-nav ms-auto me-3">
+                    <li class="nav-item">
+                        <a class="nav-link" href="home.html">
+                            <i class="bi bi-house-door me-1"></i>Home
+                        </a>
+                    </li>
+
+                    <!-- Dropdown list -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false" id="exploreDropdown">
+                            <i class="bi bi-compass me-1"></i>Explore
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="exploreDropdown">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-fire me-2"></i>Trending</a></li>
+                            <li><a class="dropdown-item" href="movies.html"><i class="bi bi-film me-2"></i>Popular
+                                    Movies</a></li>
+                            <li><a class="dropdown-item" href="series.html"><i class="bi bi-tv me-2"></i>Popular
+                                    Series</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-star me-2"></i>Top Actors</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-calendar-event me-2"></i>Upcoming
+                                    Releases</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2">
+                    <!-- Search Button -->
+                    <button class="btn btn-sm btn-outline-light d-flex align-items-center" type="button"
+                        data-bs-toggle="modal" data-bs-target="#searchModal" aria-label="Search">
+                        <i class="bi bi-search me-1"></i> Search
+                    </button>
+
+                    <!-- Login Button -->
+                    <button class="btn btn-sm btn-outline-light d-flex align-items-center" type="button"
+                        data-bs-toggle="modal" data-bs-target="#loginModal" aria-label="Login">
+                        <i class="bi bi-person-circle me-1"></i> Login
+                    </button>
                 </div>
-                
-                <!-- Search button -->
-                <button class="btn btn-sm btn-outline-light d-flex align-items-center me-2" 
-                        type="button" 
-                        data-bs-toggle="modal" 
-                        data-bs-target="#searchModal">
-                    <i class="bi bi-search me-1"></i> Search
-                </button> 
-
-                <!-- Login button -->
-                <button class="btn btn-sm btn-outline-light d-flex align-items-center me-2"
-                        type="button"
-                        data-bs-toggle="modal"
-                        data-bs-target="#loginModal">
-                    <i class="bi bi-person-circle me-1"></i> Login
-                </button>
-                
             </div>
-        </nav>
+        </div>
+    </nav>
 
-        <div class="container my-5">
-            <div class="row">
+    <!-- HERO BANNER -->
+    <section class="movie-hero" style="background-image: url('https://via.placeholder.com/1920x1080/1a1a2e/667eea?text=The+Dark+Knight+Banner');">
+        <div class="movie-hero-overlay"></div>
+    </section>
 
-                <!-- Movie Poster -->
-                <div class="col-6 col-md-3">
-                    <div class="card media-card bg-dark text-white">
-                        <img src="https://via.placeholder.com/300x450" class="card-img-top" alt="Movie">
+    <!-- MAIN CONTENT -->
+    <main class="container">
+        <div class="row">
+            <!-- Movie Poster (Floating) -->
+            <div class="col-12 col-md-3">
+                <img src="https://via.placeholder.com/300x450/667eea/ffffff?text=The+Dark+Knight" 
+                     class="img-fluid floating-poster" 
+                     alt="The Dark Knight">
+            </div>
+
+            <!-- Movie Information -->
+            <div class="col-12 col-md-9 mt-4 mt-md-0">
+                <!-- Title & Meta -->
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                    <h1 class="display-5 fw-bold mb-0">The Dark Knight</h1>
+                    <span class="badge bg-warning text-dark fs-6">PG-13</span>
+                </div>
+
+                <p class="text-white mb-4">
+                    <i class="bi bi-calendar3 me-1"></i> 2008
+                    <span class="mx-2">•</span>
+                    <i class="bi bi-clock me-1"></i> 2h 32m
+                    <span class="mx-2">•</span>
+                    <i class="bi bi-translate me-1"></i> English
+                </p>
+
+                <!-- Genres -->
+                <div class="mb-4">
+                    <span class="tag"><i class="bi bi-tag-fill me-1"></i>Action</span>
+                    <span class="tag"><i class="bi bi-tag-fill me-1"></i>Crime</span>
+                    <span class="tag"><i class="bi bi-tag-fill me-1"></i>Drama</span>
+                    <span class="tag"><i class="bi bi-tag-fill me-1"></i>Thriller</span>
+                </div>
+
+                <!-- Rating & Actions -->
+                <div class="row g-3 mb-4">
+                    <div class="col-auto">
+                        <div class="rating-circle">
+                            <span class="rating-value">8.7</span>
+                        </div>
+                        <small class="d-block text-center mt-2 text-white">IMDb Rating</small>
+                    </div>
+
+                    <div class="col">
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="#trailer-section" class="btn btn-primary action-btn">
+                                <i class="bi bi-play-fill me-2"></i>Watch Trailer
+                            </a>
+                            <button class="btn btn-outline-light action-btn">
+                                <i class="bi bi-bookmark me-2"></i>Add to Watchlist
+                            </button>
+                            <button class="btn btn-outline-light action-btn">
+                                <i class="bi bi-heart me-2"></i>Favorite
+                            </button>
+                            <button class="btn btn-outline-light action-btn" data-bs-toggle="modal" data-bs-target="#ratingModal">
+                                <i class="bi bi-star me-2"></i>Rate
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Movie Details -->
-                <div class="col-12 col-md-9">
-                    <h1>Movie Title</h1>
-                    <p class="text-muted">Action • 2024 • 2h 10m</p>
-
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. This is the movie synopsis section where the description will go.</p>
-
-                    <h4 class="mt-4">Cast</h4>
-                    <ul>
-                        <li>Actor 1</li>
-                        <li>Actor 2</li>
-                        <li>Actor 3</li>
-                    </ul>
-
-                    <h4 class="mt-4">Director</h4>
-                    <p>John Doe</p>
+                <!-- Stats -->
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <div class="stat-badge">
+                        <i class="bi bi-eye me-2"></i>
+                        <strong>2.5M</strong> <small class="text-white">Views</small>
+                    </div>
+                    <div class="stat-badge">
+                        <i class="bi bi-star-fill text-warning me-2"></i>
+                        <strong>1.2M</strong> <small class="text-white">Ratings</small>
+                    </div>
+                    <div class="stat-badge">
+                        <i class="bi bi-chat-dots me-2"></i>
+                        <strong>45K</strong> <small class="text-white">Reviews</small>
+                    </div>
                 </div>
 
+                <!-- Synopsis -->
+                <div class="mb-4">
+                    <h4 class="mb-3"><i class="bi bi-file-text me-2"></i>Synopsis</h4>
+                    <p class="lead">
+                        When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, 
+                        Batman must accept one of the greatest psychological and physical tests of his ability 
+                        to fight injustice. With the help of Lt. Jim Gordon and District Attorney Harvey Dent, 
+                        Batman sets out to dismantle the remaining criminal organizations.
+                    </p>
+                </div>
+
+                <!-- Director & Writers -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5><i class="bi bi-megaphone me-2"></i>Director</h5>
+                        <p>
+                            <a href="https://www.imdb.com/name/nm0634240/" 
+                            class="text-decoration-none" 
+                            target="_blank">Christopher Nolan
+                            </a>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="bi bi-pen me-2"></i>Writers</h5>
+                        <p>
+                            <a href="https://www.imdb.com/name/nm0634240/" 
+                            class="text-decoration-none" 
+                            target="_blank">Christopher Nolan
+                            </a>, 
+                            <a href="https://www.imdb.com/name/nm0634240/" 
+                            class="text-decoration-none" 
+                            target="_blank">Christopher Nolan
+                            </a>
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- footer -->
-        <footer class="bg-dark text-center py-3">
-            <p class="mb-0">© 2025 CineGrid. All rights reserved.</p>
-        </footer>
+        <hr class="my-5">
 
-        <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-            crossorigin="anonymous"></script>
+        <!-- Cast Section -->
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3><i class="bi bi-people-fill me-2"></i>Top Cast</h3>
+                <a href="https://www.imdb.com/title/tt0468569/fullcredits/" class="btn btn-outline-light btn-sm" target="_blank">See Full Cast</a>
+            </div>
+
+            <div class="row row-cols-2 row-cols-md-6 g-3">
+                <!-- Cast Member 1 -->
+                <div class="col">
+                    <div class="cast-card">
+                        <img src="https://via.placeholder.com/150x200/667eea/ffffff?text=Christian+Bale" 
+                             class="cast-avatar" alt="Christian Bale">
+                        <div class="mt-2">
+                            <h6 class="mb-0">Christian Bale</h6>
+                            <small class="text-white">Bruce Wayne</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cast Member 2 -->
+                <div class="col">
+                    <div class="cast-card">
+                        <img src="https://via.placeholder.com/150x200/764ba2/ffffff?text=Heath+Ledger" 
+                             class="cast-avatar" alt="Heath Ledger">
+                        <div class="mt-2">
+                            <h6 class="mb-0">Heath Ledger</h6>
+                            <small class="text-white">The Joker</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cast Member 3 -->
+                <div class="col">
+                    <div class="cast-card">
+                        <img src="https://via.placeholder.com/150x200/4ecdc4/ffffff?text=Aaron+Eckhart" 
+                             class="cast-avatar" alt="Aaron Eckhart">
+                        <div class="mt-2">
+                            <h6 class="mb-0">Aaron Eckhart</h6>
+                            <small class="text-white">Harvey Dent</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cast Member 4 -->
+                <div class="col">
+                    <div class="cast-card">
+                        <img src="https://via.placeholder.com/150x200/ff6b6b/ffffff?text=Michael+Caine" 
+                             class="cast-avatar" alt="Michael Caine">
+                        <div class="mt-2">
+                            <h6 class="mb-0">Michael Caine</h6>
+                            <small class="text-white">Alfred</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cast Member 5 -->
+                <div class="col">
+                    <div class="cast-card">
+                        <img src="https://via.placeholder.com/150x200/f39c12/ffffff?text=Maggie+Gyllenhaal" 
+                             class="cast-avatar" alt="Maggie Gyllenhaal">
+                        <div class="mt-2">
+                            <h6 class="mb-0">Maggie Gyllenhaal</h6>
+                            <small class="text-white">Rachel Dawes</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cast Member 6 -->
+                <div class="col">
+                    <div class="cast-card">
+                        <img src="https://via.placeholder.com/150x200/9b59b6/ffffff?text=Gary+Oldman" 
+                             class="cast-avatar" alt="Gary Oldman">
+                        <div class="mt-2">
+                            <h6 class="mb-0">Gary Oldman</h6>
+                            <small class="text-white">Jim Gordon</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="my-5">
+
+        <!-- Trailer Section -->
+        <section id="trailer-section" class="mb-5">
+            <h3 class="mb-4"><i class="bi bi-play-circle me-2"></i>Official Trailer</h3>
+            <div class="trailer-container">
+                <iframe 
+                    src="https://www.youtube.com/embed/EXeTwQWrcwY" 
+                    title="The Dark Knight Trailer" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </section>
+
+        <hr class="my-5">
+
+        <!-- Reviews Section -->
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3><i class="bi bi-chat-square-text me-2"></i>User Reviews</h3>
+                <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                    <i class="bi bi-pencil me-2"></i>Write Review
+                </button>
+            </div>
+
+            <!-- Review 1 -->
+            <div class="review-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h5 class="mb-1">john_doe_92</h5>
+                        <div class="review-rating">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <span class="ms-2">10/10</span>
+                        </div>
+                    </div>
+                    <small class="text-white">2 weeks ago</small>
+                </div>
+                <h6 class="mb-2">A Masterpiece of Modern Cinema</h6>
+                <p class="mb-2">
+                    The Dark Knight is not just a superhero movie; it's a crime epic that transcends 
+                    the genre. Heath Ledger's performance as the Joker is haunting and unforgettable. 
+                    Christopher Nolan delivers a complex, dark, and thrilling narrative that keeps you 
+                    on the edge of your seat from start to finish.
+                </p>
+                <div class="d-flex gap-3">
+                    <button class="btn btn-sm btn-outline-light">
+                        <i class="bi bi-hand-thumbs-up me-1"></i>Helpful (245)
+                    </button>
+                    <button class="btn btn-sm btn-outline-light">
+                        <i class="bi bi-flag me-1"></i>Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Review 2 -->
+            <div class="review-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h5 class="mb-1">movie_buff_2024</h5>
+                        <div class="review-rating">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-half"></i>
+                            <span class="ms-2">9/10</span>
+                        </div>
+                    </div>
+                    <small class="text-white">1 month ago</small>
+                </div>
+                <h6 class="mb-2">Outstanding Performance and Direction</h6>
+                <p class="mb-2">
+                    Heath Ledger's Joker is legendary. The cinematography is stunning, and the story 
+                    is gripping. This film set a new standard for superhero movies. A must-watch!
+                </p>
+                <div class="d-flex gap-3">
+                    <button class="btn btn-sm btn-outline-light">
+                        <i class="bi bi-hand-thumbs-up me-1"></i>Helpful (189)
+                    </button>
+                    <button class="btn btn-sm btn-outline-light">
+                        <i class="bi bi-flag me-1"></i>Report
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-light">Load More Reviews</button>
+            </div>
+        </section>
+
+        <hr class="my-5">
+
+        <!-- Similar Movies Section -->
+        <section class="mb-5">
+            <h3 class="mb-4"><i class="bi bi-film me-2"></i>More Like This</h3>
+            <div class="row row-cols-2 row-cols-md-4 g-4">
+                <!-- Similar Movie 1 -->
+                <div class="col">
+                    <a href="movie-details.html" class="text-decoration-none">
+                        <div class="card media-card bg-dark text-white position-relative">
+                            <img src="https://via.placeholder.com/300x450/667eea/ffffff?text=Batman+Begins" 
+                                 class="card-img-top" alt="Batman Begins">
+                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                <i class="bi bi-star-fill"></i> 8.2
+                            </span>
+                            <div class="card-body">
+                                <h5 class="card-title">Batman Begins</h5>
+                                <p class="card-text text-white">Action • 2005</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Similar Movie 2 -->
+                <div class="col">
+                    <a href="movie-details.html" class="text-decoration-none">
+                        <div class="card media-card bg-dark text-white position-relative">
+                            <img src="https://via.placeholder.com/300x450/764ba2/ffffff?text=Inception" 
+                                 class="card-img-top" alt="Inception">
+                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                <i class="bi bi-star-fill"></i> 8.8
+                            </span>
+                            <div class="card-body">
+                                <h5 class="card-title">Inception</h5>
+                                <p class="card-text text-white">Sci-Fi • 2010</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Similar Movie 3 -->
+                <div class="col">
+                    <a href="movie-details.html" class="text-decoration-none">
+                        <div class="card media-card bg-dark text-white position-relative">
+                            <img src="https://via.placeholder.com/300x450/4ecdc4/ffffff?text=The+Prestige" 
+                                 class="card-img-top" alt="The Prestige">
+                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                <i class="bi bi-star-fill"></i> 8.5
+                            </span>
+                            <div class="card-body">
+                                <h5 class="card-title">The Prestige</h5>
+                                <p class="card-text text-white">Mystery • 2006</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Similar Movie 4 -->
+                <div class="col">
+                    <a href="movie-details.html" class="text-decoration-none">
+                        <div class="card media-card bg-dark text-white position-relative">
+                            <img src="https://via.placeholder.com/300x450/ff6b6b/ffffff?text=Joker" 
+                                 class="card-img-top" alt="Joker">
+                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                <i class="bi bi-star-fill"></i> 8.4
+                            </span>
+                            <div class="card-body">
+                                <h5 class="card-title">Joker</h5>
+                                <p class="card-text text-white">Crime • 2019</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- footer -->
+    <footer class="bg-dark text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-2">© 2025 CineGrid. All rights reserved.</p>
+            <div class="text-center mb-3">
+                <a href="#" class="text-white text-decoration-none">About</a>
+                <span class="text-white mx-2">&bull;</span>
+                <a href="#" class="text-white text-decoration-none">Privacy</a>
+                <span class="text-white mx-2">&bull;</span>
+                <a href="#" class="text-white text-decoration-none">Terms</a>
+                <span class="text-white mx-2">&bull;</span>
+                <a href="#" class="text-white text-decoration-none">Contact</a>
+            </div>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="#" class="text-white"><i class="bi bi-twitter"></i></a>
+                <a href="#" class="text-white"><i class="bi bi-facebook"></i></a>
+                <a href="#" class="text-white"><i class="bi bi-instagram"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODALS -->
+    <!-- Rating Modal -->
+    <div class="modal fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="ratingModalLabel">
+                        <i class="bi bi-star me-2"></i>Rate This Movie
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <h2 class="mb-4">The Dark Knight</h2>
+                    <div class="star-rating mb-4" id="starRating">
+                        <i class="bi bi-star fs-1 mx-1" data-rating="1"></i>
+                        <i class="bi bi-star fs-1 mx-1" data-rating="2"></i>
+                        <i class="bi bi-star fs-1 mx-1" data-rating="3"></i>
+                        <i class="bi bi-star fs-1 mx-1" data-rating="4"></i>
+                        <i class="bi bi-star fs-1 mx-1" data-rating="5"></i>
+                        <i class="bi bi-star fs-1 mx-1" data-rating="6"></i>
+                        <i class="bi bi-star fs-1 mx-1" data-rating="7"></i>
+                        <i class="bi bi-star fs-1 mx-1" data-rating="8"></i>
+                        <i class="bi bi-star fs-1 mx-1" data-rating="9"></i>
+                        <i class="bi bi-star fs-1 mx-1" data-rating="10"></i>
+                    </div>
+                    <p class="text-muted">Click on a star to rate</p>
+                    <div id="ratingValue" class="display-4 text-warning mb-3" style="display: none;">0/10</div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submitRating">Submit Rating</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="reviewModalLabel">
+                        <i class="bi bi-pencil me-2"></i>Write a Review
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reviewForm">
+                        <div class="mb-3">
+                            <label for="reviewTitle" class="form-label">Review Title</label>
+                            <input type="text" class="form-control" id="reviewTitle" placeholder="Give your review a title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reviewText" class="form-label">Your Review</label>
+                            <textarea class="form-control" id="reviewText" rows="6" placeholder="Share your thoughts about this movie..." required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Your Rating</label>
+                            <div id="reviewStarRating" class="d-flex gap-2">
+                                <i class="bi bi-star fs-3" data-rating="1"></i>
+                                <i class="bi bi-star fs-3" data-rating="2"></i>
+                                <i class="bi bi-star fs-3" data-rating="3"></i>
+                                <i class="bi bi-star fs-3" data-rating="4"></i>
+                                <i class="bi bi-star fs-3" data-rating="5"></i>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-send me-2"></i>Submit Review
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Searh Field Modal-->
+    <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="searchModalLabel">
+                        <i class="bi bi-search me-2"></i>Search CineGrid
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="search" class="form-control form-control-lg"
+                        placeholder="Start typing a movie, series, or actor..." aria-label="Search">
+                    <div class="mt-3">
+                        <small class="text-white">Trending: Marvel, Christpher Nolan, Squid Game</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="loginModalLabel">Log In to CineGrid</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm">
+                        <!-- for email input -->
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="emailInput" placeholder="name@example.com"
+                                required>
+                            <label for="emailInput">Email address</label>
+                        </div>
+
+                        <!-- for password input -->
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="passwordInput" placeholder="Password"
+                                required>
+                            <label for="passwordInput">Password</label>
+                        </div>
+
+                        <!-- submit button with a loader-->
+                        <button type="submit" class="btn btn-primary w-100 mt-3" id="loginBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            <span class="btn-text">Login</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- sign in setter -->
+                <div class="modal-footer justify-content-center border-0">
+                    <small class="text-white">New user?
+                        <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signupModal"
+                            class="text-decoration-none">Create Account</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign up Modal -->
+    <div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="signupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="signupModalLabel">Sign up to CineGrid</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="signupForm">
+                        <!-- for fullname input -->
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="signupName" placeholder="Full Name" required>
+                            <label for="signupName">Full Name</label>
+                        </div>
+
+                        <!-- for email inpput -->
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="signupEmail" placeholder="Email Address"
+                                required>
+                            <label for="signupEmail">Email Address</label>
+                        </div>
+
+                        <!-- for password input -->
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="signupPassword" placeholder="Password"
+                                required>
+                            <label for="signupPassword">Password</label>
+                        </div>
+
+                        <!-- submit button with a loader -->
+                        <button type="submit" class="btn btn-primary w-100 mt-3" id="signupBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            <span class="btn-text">Sign up</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- login setter -->
+                <div class="modal-footer justify-content-center border-0">
+                    <small class="text-muted">Already have an account?
+                        <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal"
+                            class="text-decoration-none">Log In Account</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+    <script>
+        // Star Rating Interaction (10-point scale)
+        const starRating = document.getElementById('starRating');
+        const stars = starRating.querySelectorAll('i');
+        const ratingValue = document.getElementById('ratingValue');
+        let selectedRating = 0;
+
+        stars.forEach(star => {
+            star.style.cursor = 'pointer';
             
-    </body>
+            star.addEventListener('mouseenter', () => {
+                const rating = star.getAttribute('data-rating');
+                highlightStars(rating);
+            });
+
+            star.addEventListener('click', () => {
+                selectedRating = star.getAttribute('data-rating');
+                ratingValue.textContent = selectedRating + '/10';
+                ratingValue.style.display = 'block';
+            });
+        });
+
+        starRating.addEventListener('mouseleave', () => {
+            if (selectedRating > 0) {
+                highlightStars(selectedRating);
+            } else {
+                resetStars();
+            }
+        });
+
+        function highlightStars(rating) {
+            stars.forEach(star => {
+                if (star.getAttribute('data-rating') <= rating) {
+                    star.classList.remove('bi-star');
+                    star.classList.add('bi-star-fill', 'text-warning');
+                } else {
+                    star.classList.remove('bi-star-fill', 'text-warning');
+                    star.classList.add('bi-star');
+                }
+            });
+        }
+
+        function resetStars() {
+            stars.forEach(star => {
+                star.classList.remove('bi-star-fill', 'text-warning');
+                star.classList.add('bi-star');
+            });
+        }
+
+        // Submit Rating
+        document.getElementById('submitRating').addEventListener('click', () => {
+            if (selectedRating > 0) {
+                alert('You rated this movie ' + selectedRating + '/10!');
+                const modalEl = document.getElementById('ratingModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                modal.hide();
+            } else {
+                alert('Please select a rating first!');
+            }
+        });
+
+        // Review Star Rating (5-point scale)
+        const reviewStars = document.querySelectorAll('#reviewStarRating i');
+        let reviewRating = 0;
+
+        reviewStars.forEach(star => {
+            star.style.cursor = 'pointer';
+            
+            star.addEventListener('click', () => {
+                reviewRating = star.getAttribute('data-rating');
+                reviewStars.forEach(s => {
+                    if (s.getAttribute('data-rating') <= reviewRating) {
+                        s.classList.remove('bi-star');
+                        s.classList.add('bi-star-fill', 'text-warning');
+                    } else {
+                        s.classList.remove('bi-star-fill', 'text-warning');
+                        s.classList.add('bi-star');
+                    }
+                });
+            });
+        });
+
+        // Submit Review
+        document.getElementById('reviewForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (reviewRating === 0) {
+                alert('Please rate the movie!');
+                return;
+            }
+            alert('Review submitted successfully!');
+            const modalEl = document.getElementById('reviewModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+        });
+    </script>
+
+</body>
+
 </html>

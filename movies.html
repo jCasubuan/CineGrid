@@ -1,108 +1,837 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>CineGrid | Movies</title>
 
-        <!-- BootStrap 5 CSS -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-            integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Browse all movies on CineGrid - Filter by genre, year, and rating">
+    <title>CineGrid | Movies</title>
 
-        <link rel="stylesheet" href="main.css">
+    <!-- BootStrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    </head>
-    <body>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="main.css">
 
-        <!-- NAVBAR -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-            <div class="container">
-                <a class="navbar-brand fw-bold" href="home.html">CineGrid</a>
+    <style>
+        /* Filter Sidebar */
+        .filter-sidebar {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            position: sticky;
+            top: 80px;
+        }
 
-                <!-- hamburger menu button -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+        .filter-section {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    
-                    <!-- Home as button -->
-                    <ul class="navbar-nav ms-auto me-3">
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="home.html">Home</a>
-                        </li>
+        .filter-section:last-child {
+            border-bottom: none;
+        }
 
-                        <!-- Dropdown list -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Explore
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-dark">
-                                <li><a class="dropdown-item" href="#">Trending</a></li>
-                                <li><a class="dropdown-item" href="movies.html">Popular Movies</a></li>
-                                <li><a class="dropdown-item" href="series.html">Popular Series</a></li>
-                                <li><a class="dropdown-item" href="#">Top Actors</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#">Upcoming Releases</a></li>
-                            </ul>
-                        </li>
-                    </ul>
+        .filter-option {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-option:hover {
+            padding-left: 5px;
+        }
+
+        .filter-option input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        /* View Toggle Buttons */
+        .view-toggle {
+            display: flex;
+            gap: 5px;
+        }
+
+        .view-toggle .btn {
+            padding: 8px 15px;
+        }
+
+        /* Results Header */
+        .results-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        /* Movie Cards Enhancement */
+        .movie-grid {
+            min-height: 600px;
+        }
+
+        /* Pagination */
+        .pagination {
+            margin-top: 40px;
+        }
+
+        .pagination .page-link {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            margin: 0 3px;
+            border-radius: 8px;
+        }
+
+        .pagination .page-link:hover {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+        }
+
+        /* List View Style */
+        .list-view .movie-card {
+            display: flex;
+            flex-direction: row;
+            margin-bottom: 20px;
+        }
+
+        .list-view .movie-card img {
+            width: 120px;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .list-view .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Mobile Filter Toggle */
+        @media (max-width: 768px) {
+            .filter-sidebar {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                height: 100vh;
+                width: 280px;
+                z-index: 1050;
+                transition: left 0.3s ease;
+                overflow-y: auto;
+            }
+
+            .filter-sidebar.show {
+                left: 0;
+            }
+
+            .filter-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 1040;
+                display: none;
+            }
+
+            .filter-overlay.show {
+                display: block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <!-- Logo with Icon -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="home.html">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="32" height="32" class="me-2">
+                    <rect x="40" y="50" width="120" height="100" fill="none" stroke="#667eea" stroke-width="4" rx="8"/>
+                    <line x1="100" y1="50" x2="100" y2="150" stroke="#667eea" stroke-width="4"/>
+                    <line x1="40" y1="100" x2="160" y2="100" stroke="#667eea" stroke-width="4"/>
+                    <rect x="30" y="60" width="8" height="12" fill="#667eea" rx="2"/>
+                    <rect x="30" y="94" width="8" height="12" fill="#667eea" rx="2"/>
+                    <rect x="30" y="128" width="8" height="12" fill="#667eea" rx="2"/>
+                    <rect x="162" y="60" width="8" height="12" fill="#667eea" rx="2"/>
+                    <rect x="162" y="94" width="8" height="12" fill="#667eea" rx="2"/>
+                    <rect x="162" y="128" width="8" height="12" fill="#667eea" rx="2"/>
+                    <polygon points="90,80 90,120 120,100" fill="#667eea"/>
+                </svg>
+                CineGrid
+            </a>
+
+            <!-- Hamburger Menu Button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Navigation Links -->
+                <ul class="navbar-nav ms-auto me-3">
+                    <li class="nav-item">
+                        <a class="nav-link" href="home.html">
+                            <i class="bi bi-house-door me-1"></i>Home
+                        </a>
+                    </li>
+
+                    <!-- Dropdown list -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false" id="exploreDropdown">
+                            <i class="bi bi-compass me-1"></i>Explore
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="exploreDropdown">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-fire me-2"></i>Trending</a></li>
+                            <li><a class="dropdown-item active" href="movies.html"><i class="bi bi-film me-2"></i>Popular Movies</a></li>
+                            <li><a class="dropdown-item" href="series.html"><i class="bi bi-tv me-2"></i>Popular Series</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-star me-2"></i>Top Actors</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-calendar-event me-2"></i>Upcoming Releases</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2">
+                    <!-- Search Button -->
+                    <button class="btn btn-sm btn-outline-light d-flex align-items-center" 
+                            type="button" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#searchModal"
+                            aria-label="Search">
+                        <i class="bi bi-search me-1"></i> Search
+                    </button>
+
+                    <!-- Login Button -->
+                    <button class="btn btn-sm btn-outline-light d-flex align-items-center"
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#loginModal"
+                            aria-label="Login">
+                        <i class="bi bi-person-circle me-1"></i> Login
+                    </button>
                 </div>
-                
-                <!-- Search button -->
-                <button class="btn btn-sm btn-outline-light d-flex align-items-center me-2" 
-                        type="button" 
-                        data-bs-toggle="modal" 
-                        data-bs-target="#searchModal">
-                    <i class="bi bi-search me-1"></i> Search
-                </button> 
-
-                <!-- Login button -->
-                <button class="btn btn-sm btn-outline-light d-flex align-items-center me-2"
-                        type="button"
-                        data-bs-toggle="modal"
-                        data-bs-target="#loginModal">
-                    <i class="bi bi-person-circle me-1"></i> Login
-                </button>
-                
-            </div>
-        </nav>
-
-        <!-- Movie list section -->
-        <div class="container my-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">All Movies</h2>
-            </div>
-
-             <!-- 2 columns on mobile, 4 on desktop -->
-            <div class="row row-cols-2 row-cols-md-4 g-4">
-
-                <!-- movie cards -->
-                <div class="col">
-                    <a href="movie-details.html" class="text-decoration-none">
-                        <div class="card media-card bg-dark text-white">
-                            <img src="https://via.placeholder.com/300x450" class="card-img-top" alt="Movie">
-                            <div class="card-body">
-                                <h5 class="card-title">Movie Title</h5>
-                                <p class="card-text">Action • 2024</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
             </div>
         </div>
+    </nav>
 
-        <!-- footer -->
-        <footer class="bg-dark text-center py-3">
-            <p class="mb-0">© 2025 CineGrid. All rights reserved.</p>
-        </footer>
+    <!-- MAIN CONTENT -->
+    <main class="container mt-0 pt-3 mb-5">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="home.html" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page">All Movies</li>
+            </ol>
+        </nav>
 
-        <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-            crossorigin="anonymous"></script>
+        <div class="row">
+            <!-- FILTER SIDEBAR -->
+            <div class="col-lg-3">
+                <!-- Mobile Filter Toggle -->
+                <button class="btn btn-primary w-100 mb-3 d-lg-none" id="filterToggle">
+                    <i class="bi bi-funnel me-2"></i>Filters
+                </button>
 
-    </body>
+                <div class="filter-sidebar" id="filterSidebar">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Filters</h5>
+                        <button class="btn btn-sm btn-outline-light d-lg-none" id="closeFilter">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+
+                    <!-- Genre Filter -->
+                    <div class="filter-section">
+                        <h6 class="mb-3"><i class="bi bi-tags me-2"></i>Genre</h6>
+                        <div class="filter-option">
+                            <input type="checkbox" id="action" class="form-check-input">
+                            <label for="action">Action</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="comedy" class="form-check-input">
+                            <label for="comedy">Comedy</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="drama" class="form-check-input">
+                            <label for="drama">Drama</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="horror" class="form-check-input">
+                            <label for="horror">Horror</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="scifi" class="form-check-input">
+                            <label for="scifi">Sci-Fi</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="thriller" class="form-check-input">
+                            <label for="thriller">Thriller</label>
+                        </div>
+                    </div>
+
+                    <!-- Year Filter -->
+                    <div class="filter-section">
+                        <h6 class="mb-3"><i class="bi bi-calendar3 me-2"></i>Release Year</h6>
+                        <select class="form-select mb-2" id="yearFrom">
+                            <option selected>From Year</option>
+                            <option>2024</option>
+                            <option>2023</option>
+                            <option>2022</option>
+                            <option>2021</option>
+                            <option>2020</option>
+                            <option>2010s</option>
+                            <option>2000s</option>
+                            <option>1990s</option>
+                        </select>
+                        <select class="form-select" id="yearTo">
+                            <option selected>To Year</option>
+                            <option>2024</option>
+                            <option>2023</option>
+                            <option>2022</option>
+                            <option>2021</option>
+                            <option>2020</option>
+                        </select>
+                    </div>
+
+                    <!-- Rating Filter -->
+                    <div class="filter-section">
+                        <h6 class="mb-3"><i class="bi bi-star me-2"></i>Rating</h6>
+                        <div class="filter-option">
+                            <input type="checkbox" id="rating9" class="form-check-input">
+                            <label for="rating9">
+                                <i class="bi bi-star-fill text-warning"></i> 9+ Excellent
+                            </label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="rating8" class="form-check-input">
+                            <label for="rating8">
+                                <i class="bi bi-star-fill text-warning"></i> 8+ Very Good
+                            </label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="rating7" class="form-check-input">
+                            <label for="rating7">
+                                <i class="bi bi-star-fill text-warning"></i> 7+ Good
+                            </label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="rating6" class="form-check-input">
+                            <label for="rating6">
+                                <i class="bi bi-star-fill text-warning"></i> 6+ Average
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Apply/Clear Buttons -->
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary flex-fill" id="applyFilters">
+                            <i class="bi bi-check2 me-2"></i>Apply
+                        </button>
+                        <button class="btn btn-outline-light flex-fill" id="clearFilters">
+                            <i class="bi bi-x-lg me-2"></i>Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MOVIE GRID -->
+            <div class="col-lg-9">
+                <!-- Results Header -->
+                <div class="results-header">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                        <div>
+                            <h2 class="mb-1">All Movies</h2>
+                            <p class="mb-0 text-white">
+                                <span id="resultCount">248</span> movies found
+                            </p>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <!-- Sort Dropdown -->
+                            <select class="form-select form-select-sm" id="sortBy" style="width: auto;">
+                                <option value="popular">Most Popular</option>
+                                <option value="rating">Highest Rated</option>
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="az">A-Z</option>
+                                <option value="za">Z-A</option>
+                            </select>
+
+                            <!-- View Toggle -->
+                            <div class="view-toggle btn-group" role="group">
+                                <button type="button" class="btn btn-outline-light active" id="gridView">
+                                    <i class="bi bi-grid-3x3-gap"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-light" id="listView">
+                                    <i class="bi bi-list"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Movie Cards Grid -->
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4 movie-grid" id="movieGrid">
+                    <!-- Movie Card 1 -->
+                    <div class="col">
+                        <a href="movie-details.html" class="text-decoration-none">
+                            <div class="card media-card bg-dark text-white position-relative">
+                                <img src="https://via.placeholder.com/300x450/667eea/ffffff?text=Inception" 
+                                     class="card-img-top" alt="Inception">
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                    <i class="bi bi-star-fill"></i> 8.8
+                                </span>
+                                <div class="card-body">
+                                    <h5 class="card-title">Inception</h5>
+                                    <p class="card-text text-white">Sci-Fi • 2010</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Movie Card 2 -->
+                    <div class="col">
+                        <a href="movie-details.html" class="text-decoration-none">
+                            <div class="card media-card bg-dark text-white position-relative">
+                                <img src="https://via.placeholder.com/300x450/764ba2/ffffff?text=The+Dark+Knight" 
+                                     class="card-img-top" alt="The Dark Knight">
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                    <i class="bi bi-star-fill"></i> 9.0
+                                </span>
+                                <div class="card-body">
+                                    <h5 class="card-title">The Dark Knight</h5>
+                                    <p class="card-text text-white">Action • 2008</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Movie Card 3 -->
+                    <div class="col">
+                        <a href="movie-details.html" class="text-decoration-none">
+                            <div class="card media-card bg-dark text-white position-relative">
+                                <img src="https://via.placeholder.com/300x450/4ecdc4/ffffff?text=Interstellar" 
+                                     class="card-img-top" alt="Interstellar">
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                    <i class="bi bi-star-fill"></i> 8.6
+                                </span>
+                                <div class="card-body">
+                                    <h5 class="card-title">Interstellar</h5>
+                                    <p class="card-text text-white">Sci-Fi • 2014</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Movie Card 4 -->
+                    <div class="col">
+                        <a href="movie-details.html" class="text-decoration-none">
+                            <div class="card media-card bg-dark text-white position-relative">
+                                <img src="https://via.placeholder.com/300x450/ff6b6b/ffffff?text=Parasite" 
+                                     class="card-img-top" alt="Parasite">
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                    <i class="bi bi-star-fill"></i> 8.5
+                                </span>
+                                <div class="card-body">
+                                    <h5 class="card-title">Parasite</h5>
+                                    <p class="card-text text-white">Thriller • 2019</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Movie Card 5 -->
+                    <div class="col">
+                        <a href="movie-details.html" class="text-decoration-none">
+                            <div class="card media-card bg-dark text-white position-relative">
+                                <img src="https://via.placeholder.com/300x450/f39c12/ffffff?text=The+Matrix" 
+                                     class="card-img-top" alt="The Matrix">
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                    <i class="bi bi-star-fill"></i> 8.7
+                                </span>
+                                <div class="card-body">
+                                    <h5 class="card-title">The Matrix</h5>
+                                    <p class="card-text text-white">Sci-Fi • 1999</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Movie Card 6 -->
+                    <div class="col">
+                        <a href="movie-details.html" class="text-decoration-none">
+                            <div class="card media-card bg-dark text-white position-relative">
+                                <img src="https://via.placeholder.com/300x450/9b59b6/ffffff?text=Pulp+Fiction" 
+                                     class="card-img-top" alt="Pulp Fiction">
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                    <i class="bi bi-star-fill"></i> 8.9
+                                </span>
+                                <div class="card-body">
+                                    <h5 class="card-title">Pulp Fiction</h5>
+                                    <p class="card-text text-white">Crime • 1994</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Movie Card 7 -->
+                    <div class="col">
+                        <a href="movie-details.html" class="text-decoration-none">
+                            <div class="card media-card bg-dark text-white position-relative">
+                                <img src="https://via.placeholder.com/300x450/e74c3c/ffffff?text=Fight+Club" 
+                                     class="card-img-top" alt="Fight Club">
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                    <i class="bi bi-star-fill"></i> 8.8
+                                </span>
+                                <div class="card-body">
+                                    <h5 class="card-title">Fight Club</h5>
+                                    <p class="card-text text-wthie">Drama • 1999</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Movie Card 8 -->
+                    <div class="col">
+                        <a href="movie-details.html" class="text-decoration-none">
+                            <div class="card media-card bg-dark text-white position-relative">
+                                <img src="https://via.placeholder.com/300x450/16a085/ffffff?text=Forrest+Gump" 
+                                     class="card-img-top" alt="Forrest Gump">
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                    <i class="bi bi-star-fill"></i> 8.8
+                                </span>
+                                <div class="card-body">
+                                    <h5 class="card-title">Forrest Gump</h5>
+                                    <p class="card-text text-white">Drama • 1994</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Continue with more movie cards... -->
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Movie pagination" class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item"><a class="page-link" href="#">4</a></li>
+                        <li class="page-item"><a class="page-link" href="#">5</a></li>
+                        <li class="page-item">
+                            <span class="page-link">...</span>
+                        </li>
+                        <li class="page-item"><a class="page-link" href="#">21</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </main>
+
+    <!-- Filter overlay for mobile -->
+    <div class="filter-overlay" id="filterOverlay"></div>
+
+    <!-- footer -->
+    <footer class="bg-dark text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-2">© 2025 CineGrid. All rights reserved.</p>
+            <div class="text-center mb-3">
+                <a href="#" class="text-white text-decoration-none">About</a>
+                <span class="text-white mx-2">&bull;</span>
+                <a href="#" class="text-white text-decoration-none">Privacy</a>
+                <span class="text-white mx-2">&bull;</span>
+                <a href="#" class="text-white text-decoration-none">Terms</a>
+                <span class="text-white mx-2">&bull;</span>
+                <a href="#" class="text-white text-decoration-none">Contact</a>
+            </div>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="#" class="text-white"><i class="bi bi-twitter"></i></a>
+                <a href="#" class="text-white"><i class="bi bi-facebook"></i></a>
+                <a href="#" class="text-white"><i class="bi bi-instagram"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODALS -->
+    <!-- Searh Field Modal-->
+    <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="searchModalLabel">
+                        <i class="bi bi-search me-2"></i>Search CineGrid
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="search" class="form-control form-control-lg"
+                        placeholder="Start typing a movie, series, or actor..." aria-label="Search">
+                    <div class="mt-3">
+                        <small class="text-white">Trending: Marvel, Christpher Nolan, Squid Game</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="loginModalLabel">Log In to CineGrid</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm">
+                        <!-- for email input -->
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="emailInput" placeholder="name@example.com"
+                                required>
+                            <label for="emailInput">Email address</label>
+                        </div>
+
+                        <!-- for password input -->
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="passwordInput" placeholder="Password"
+                                required>
+                            <label for="passwordInput">Password</label>
+                        </div>
+
+                        <!-- submit button with a loader-->
+                        <button type="submit" class="btn btn-primary w-100 mt-3" id="loginBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            <span class="btn-text">Login</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- sign in setter -->
+                <div class="modal-footer justify-content-center border-0">
+                    <small class="text-muted">New user?
+                        <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signupModal"
+                            class="text-decoration-none">Create Account</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign up Modal -->
+    <div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="signupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="signupModalLabel">Sign up to CineGrid</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="signupForm">
+                        <!-- for fullname input -->
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="signupName" placeholder="Full Name" required>
+                            <label for="signupName">Full Name</label>
+                        </div>
+
+                        <!-- for email inpput -->
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="signupEmail" placeholder="Email Address"
+                                required>
+                            <label for="signupEmail">Email Address</label>
+                        </div>
+
+                        <!-- for password input -->
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="signupPassword" placeholder="Password"
+                                required>
+                            <label for="signupPassword">Password</label>
+                        </div>
+
+                        <!-- submit button with a loader -->
+                        <button type="submit" class="btn btn-primary w-100 mt-3" id="signupBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            <span class="btn-text">Sign up</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- login setter -->
+                <div class="modal-footer justify-content-center border-0">
+                    <small class="text-muted">Already have an account?
+                        <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal"
+                            class="text-decoration-none">Log In Account</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+    <!-- Custom JavaScript -->
+    <script>
+        // Mobile Filter Toggle
+        const filterToggle = document.getElementById('filterToggle');
+        const filterSidebar = document.getElementById('filterSidebar');
+        const filterOverlay = document.getElementById('filterOverlay');
+        const closeFilter = document.getElementById('closeFilter');
+
+        filterToggle?.addEventListener('click', () => {
+            filterSidebar.classList.add('show');
+            filterOverlay.classList.add('show');
+        });
+
+        closeFilter?.addEventListener('click', () => {
+            filterSidebar.classList.remove('show');
+            filterOverlay.classList.remove('show');
+        });
+
+        filterOverlay?.addEventListener('click', () => {
+            filterSidebar.classList.remove('show');
+            filterOverlay.classList.remove('show');
+        });
+
+        // View Toggle (Grid/List)
+        const gridViewBtn = document.getElementById('gridView');
+        const listViewBtn = document.getElementById('listView');
+        const movieGrid = document.getElementById('movieGrid');
+
+        gridViewBtn?.addEventListener('click', () => {
+            movieGrid.classList.remove('list-view');
+            movieGrid.className = 'row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4 movie-grid';
+            gridViewBtn.classList.add('active');
+            listViewBtn.classList.remove('active');
+        });
+
+        listViewBtn?.addEventListener('click', () => {
+            movieGrid.className = 'list-view movie-grid';
+            listViewBtn.classList.add('active');
+            gridViewBtn.classList.remove('active');
+        });
+
+        // Sort Dropdown
+        const sortBy = document.getElementById('sortBy');
+        sortBy?.addEventListener('change', (e) => {
+            console.log('Sorting by:', e.target.value);
+            // Here you would implement actual sorting logic
+            alert('Sorting by: ' + e.target.options[e.target.selectedIndex].text);
+        });
+
+        // Apply Filters
+        const applyFilters = document.getElementById('applyFilters');
+        applyFilters?.addEventListener('click', () => {
+            // Collect selected filters
+            const filters = {
+                genres: [],
+                yearFrom: document.getElementById('yearFrom').value,
+                yearTo: document.getElementById('yearTo').value,
+                ratings: []
+            };
+
+            // Get genre checkboxes
+            document.querySelectorAll('.filter-section:first-child input[type="checkbox"]:checked').forEach(cb => {
+                filters.genres.push(cb.id);
+            });
+
+            // Get rating checkboxes
+            document.querySelectorAll('.filter-section:nth-child(3) input[type="checkbox"]:checked').forEach(cb => {
+                filters.ratings.push(cb.id);
+            });
+
+            console.log('Applied filters:', filters);
+            alert('Filters applied! Check console for details.');
+
+            // Close mobile filter
+            filterSidebar.classList.remove('show');
+            filterOverlay.classList.remove('show');
+
+            // Here you would implement actual filtering logic
+        });
+
+        // Clear Filters
+        const clearFilters = document.getElementById('clearFilters');
+        clearFilters?.addEventListener('click', () => {
+            // Uncheck all checkboxes
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+
+            // Reset dropdowns
+            document.getElementById('yearFrom').selectedIndex = 0;
+            document.getElementById('yearTo').selectedIndex = 0;
+
+            alert('All filters cleared!');
+        });
+
+        // Pagination
+        const paginationLinks = document.querySelectorAll('.pagination .page-link');
+        paginationLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (!e.target.closest('.page-item').classList.contains('disabled') && 
+                    e.target.textContent !== '...') {
+                    e.preventDefault();
+                    
+                    // Remove active class from all
+                    document.querySelectorAll('.pagination .page-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    
+                    // Add active to clicked
+                    e.target.closest('.page-item').classList.add('active');
+                    
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    
+                    console.log('Loading page:', e.target.textContent);
+                }
+            });
+        });
+
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+
+</body>
+
 </html>
