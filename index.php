@@ -1,7 +1,6 @@
 <!-- PHP connection -->
-<?php 
-  session_start(); 
-  include 'includes/db_connect.php'; 
+<?php
+require_once 'includes/init.php';
 ?>
 
 <!DOCTYPE html>
@@ -11,6 +10,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="CineGrid - Your ultimate destination for movies, series, and entertainment">
+
     <title>CineGrid | Home</title>
 
     <!-- Site Icon / Logo -->
@@ -36,7 +36,6 @@
 <body>
 
     <!-- navbar.php connection -->
-    <?php $current_page = 'home'; ?>
     <?php include 'includes/navbar.php'; ?>
 
     <!-- Hero Carousel Section -->

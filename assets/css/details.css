@@ -1,0 +1,178 @@
+/* ===== CSS codes shared both by movies.php and series.php =====*/
+/* Floating Poster */
+.floating-poster {
+    margin-top: -150px;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.rating-circle::before {
+    content: '';
+    width: 65px;
+    height: 65px;
+    background: #0d0d0d;
+    border-radius: 50%;
+    position: absolute;
+}
+
+.rating-value {
+    position: relative;
+    z-index: 1;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #4caf50;
+}
+
+/* Cast Cards */
+.cast-card {
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.cast-card:hover {
+    transform: translateY(-5px);
+}
+
+.cast-avatar {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Review Card */
+.review-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.review-rating {
+    color: #ffc107;
+}
+
+/* Trailer Container */
+.trailer-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.trailer-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Hero Banner Section */
+.details-hero {
+    height: 60vh;
+    min-height: 400px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    margin-top: 56px;
+}
+
+.details-hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        to top, 
+        rgba(13, 13, 13, 1) 0%, 
+        rgba(13, 13, 13, 0.7) 50%, 
+        rgba(13, 13, 13, 0.3) 100%
+    );
+}
+
+/* Rating Circle */
+.rating-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* ===== specific series.php css only =====*/
+/* Season Tabs */
+.season-tabs {
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 30px;
+}
+
+.season-tabs .nav-link {
+    color: rgba(255, 255, 255, 0.6);
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 15px 25px;
+    transition: all 0.3s ease;
+}
+
+.season-tabs .nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.season-tabs .nav-link.active {
+    color: white;
+    background: none;
+    border-bottom-color: #667eea;
+}
+
+/* Episode Card */
+.episode-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.episode-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #667eea;
+    transform: translateX(5px);
+}
+
+.episode-thumbnail {
+    width: 160px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.episode-number {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.875rem;
+}
+
+/* Streaming Platform Badges */
+.streaming-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin: 5px;
+    font-size: 0.875rem;
+}

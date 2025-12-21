@@ -1,3 +1,8 @@
+<!-- PHP connection -->
+<?php
+require_once 'includes/init.php';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,290 +12,35 @@
     <meta name="description" content="Watch and review Series on CineGrid">
     <title>Breaking Bad (2008-2013) | CineGrid</title>
 
+    <!-- Site Icon / Logo -->
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/svg+xml" href="assets/img/logo.svg">
+
     <!-- BootStrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="main.css">
+    <!-- Boostrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+        rel="stylesheet">
 
-    <style>
-        /* Hero Banner Section */
-        .series-hero {
-            height: 60vh;
-            min-height: 400px;
-            background-size: cover;
-            background-position: center;
-            position: relative;
-            margin-top: 56px;
-        }
+    <!-- CineGrid base styles -->
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/details.css">
 
-        .series-hero-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(to top, rgba(13, 13, 13, 1) 0%, rgba(13, 13, 13, 0.7) 50%, rgba(13, 13, 13, 0.3) 100%);
-        }
-
-        /* Floating Poster */
-        .floating-poster {
-            margin-top: -150px;
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        /* Rating Circle */
-        .rating-circle {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: conic-gradient(#4caf50 0% 92%, #ddd 92% 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .rating-circle::before {
-            content: '';
-            width: 65px;
-            height: 65px;
-            background: #0d0d0d;
-            border-radius: 50%;
-            position: absolute;
-        }
-
-        .rating-value {
-            position: relative;
-            z-index: 1;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #4caf50;
-        }
-
-        /* Season Tabs */
-        .season-tabs {
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 30px;
-        }
-
-        .season-tabs .nav-link {
-            color: rgba(255, 255, 255, 0.6);
-            border: none;
-            border-bottom: 3px solid transparent;
-            padding: 15px 25px;
-            transition: all 0.3s ease;
-        }
-
-        .season-tabs .nav-link:hover {
-            color: white;
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .season-tabs .nav-link.active {
-            color: white;
-            background: none;
-            border-bottom-color: #667eea;
-        }
-
-        /* Episode Card */
-        .episode-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .episode-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: #667eea;
-            transform: translateX(5px);
-        }
-
-        .episode-thumbnail {
-            width: 160px;
-            height: 90px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .episode-number {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.875rem;
-        }
-
-        /* Cast Cards */
-        .cast-card {
-            transition: transform 0.3s ease;
-            cursor: pointer;
-        }
-
-        .cast-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .cast-avatar {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        /* Stats Badge */
-        .stat-badge {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px 20px;
-            border-radius: 8px;
-            display: inline-block;
-        }
-
-        /* Tags */
-        .tag {
-            display: inline-block;
-            padding: 6px 12px;
-            background: rgba(102, 126, 234, 0.2);
-            border: 1px solid rgba(102, 126, 234, 0.5);
-            border-radius: 20px;
-            margin: 4px;
-            font-size: 0.875rem;
-        }
-
-        /* Streaming Platform Badges */
-        .streaming-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 8px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            margin: 5px;
-            font-size: 0.875rem;
-        }
-
-        /* Review Card */
-        .review-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .review-rating {
-            color: #ffc107;
-        }
-
-        /* Trailer Container */
-        .trailer-container {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            border-radius: 12px;
-        }
-
-        .trailer-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-    </style>
+    <!-- Bootstrap overrides (modals, buttons, navbar, etc.) -->
+    <link rel="stylesheet" href="assets/css/bootstrap-overrides.css">
 </head>
 
-<body>
-
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-        <div class="container">
-            <!-- Logo with Icon -->
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="home.html">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="32" height="32" class="me-2">
-                    <rect x="40" y="50" width="120" height="100" fill="none" stroke="#667eea" stroke-width="4" rx="8" />
-                    <line x1="100" y1="50" x2="100" y2="150" stroke="#667eea" stroke-width="4" />
-                    <line x1="40" y1="100" x2="160" y2="100" stroke="#667eea" stroke-width="4" />
-                    <rect x="30" y="60" width="8" height="12" fill="#667eea" rx="2" />
-                    <rect x="30" y="94" width="8" height="12" fill="#667eea" rx="2" />
-                    <rect x="30" y="128" width="8" height="12" fill="#667eea" rx="2" />
-                    <rect x="162" y="60" width="8" height="12" fill="#667eea" rx="2" />
-                    <rect x="162" y="94" width="8" height="12" fill="#667eea" rx="2" />
-                    <rect x="162" y="128" width="8" height="12" fill="#667eea" rx="2" />
-                    <polygon points="90,80 90,120 120,100" fill="#667eea" />
-                </svg>
-                CineGrid
-            </a>
-
-            <!-- Hamburger Menu Button -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Navigation Links -->
-                <ul class="navbar-nav ms-auto me-3">
-                    <li class="nav-item">
-                        <a class="nav-link" href="home.html">
-                            <i class="bi bi-house-door me-1"></i>Home
-                        </a>
-                    </li>
-
-                    <!-- Explore Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false" id="exploreDropdown">
-                            <i class="bi bi-compass me-1"></i>Explore
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="exploreDropdown">
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-fire me-2"></i>Trending</a></li>
-                            <li><a class="dropdown-item" href="movies.html"><i class="bi bi-film me-2"></i>Popular
-                                    Movies</a></li>
-                            <li><a class="dropdown-item" href="series.html"><i class="bi bi-tv me-2"></i>Popular
-                                    Series</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-star me-2"></i>Top Actors</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-calendar-event me-2"></i>Upcoming
-                                    Releases</a></li>
-                        </ul>
-                    </li>
-                </ul>
-
-                <!-- Action Buttons -->
-                <div class="d-flex gap-2">
-                    <!-- Search Button -->
-                    <button class="btn btn-sm btn-outline-light d-flex align-items-center" type="button"
-                        data-bs-toggle="modal" data-bs-target="#searchModal" aria-label="Search">
-                        <i class="bi bi-search me-1"></i> Search
-                    </button>
-
-                    <!-- Login Button -->
-                    <button class="btn btn-sm btn-outline-light d-flex align-items-center" type="button"
-                        data-bs-toggle="modal" data-bs-target="#loginModal" aria-label="Login">
-                        <i class="bi bi-person-circle me-1"></i> Login
-                    </button>
-                </div>
-            </div>
-        </div>
-    </nav>
+<body data-type="series">
+    <!-- for PHP -->
+    <?php include 'includes/navbar.php'; ?>
 
     <!-- HERO BANNER -->
-    <section class="series-hero"
+    <section class="details-hero"
         style="background-image: url('https://via.placeholder.com/1920x1080/1a1a2e/667eea?text=Breaking+Bad+Banner');">
-        <div class="series-hero-overlay"></div>
+        <div class="details-hero-overlay"></div>
     </section>
 
     <!-- MAIN CONTENT -->
@@ -329,7 +79,7 @@
                 <!-- Rating & Actions -->
                 <div class="row g-3 mb-4">
                     <div class="col-auto">
-                        <div class="rating-circle">
+                        <div class="rating-circle" style="background: conic-gradient(#4caf50 0% 92%, #ddd 92% 100%);">
                             <span class="rating-value">9.5</span>
                         </div>
                         <small class="d-block text-center mt-2 text-white">IMDb Rating</small>
@@ -800,7 +550,7 @@
             <div class="row row-cols-2 row-cols-md-4 g-4">
                 <!-- Similar Series 1 -->
                 <div class="col">
-                    <a href="series-details.html" class="text-decoration-none">
+                    <a href="series-details.php" class="text-decoration-none">
                         <div class="card media-card bg-dark text-white position-relative">
                             <img src="https://via.placeholder.com/300x450/667eea/ffffff?text=Better+Call+Saul"
                                 class="card-img-top" alt="Better Call Saul">
@@ -817,7 +567,7 @@
 
                 <!-- Similar Series 2 -->
                 <div class="col">
-                    <a href="series-details.html" class="text-decoration-none">
+                    <a href="series-details.php" class="text-decoration-none">
                         <div class="card media-card bg-dark text-white position-relative">
                             <img src="https://via.placeholder.com/300x450/764ba2/ffffff?text=Ozark" class="card-img-top"
                                 alt="Ozark">
@@ -834,7 +584,7 @@
 
                 <!-- Similar Series 3 -->
                 <div class="col">
-                    <a href="series-details.html" class="text-decoration-none">
+                    <a href="series-details.php" class="text-decoration-none">
                         <div class="card media-card bg-dark text-white position-relative">
                             <img src="https://via.placeholder.com/300x450/4ecdc4/ffffff?text=The+Wire"
                                 class="card-img-top" alt="The Wire">
@@ -851,7 +601,7 @@
 
                 <!-- Similar Series 4 -->
                 <div class="col">
-                    <a href="series-details.html" class="text-decoration-none">
+                    <a href="series-details.php" class="text-decoration-none">
                         <div class="card media-card bg-dark text-white position-relative">
                             <img src="https://via.placeholder.com/300x450/ff6b6b/ffffff?text=The+Sopranos"
                                 class="card-img-top" alt="The Sopranos">
@@ -869,322 +619,6 @@
         </section>
     </main>
 
-    <!-- footer -->
-    <footer class="bg-dark text-center py-4 mt-5">
-        <div class="container">
-            <p class="mb-2">© 2025 CineGrid. All rights reserved.</p>
-            <div class="text-center mb-3">
-                <a href="#" class="text-white text-decoration-none">About</a>
-                <span class="text-white mx-2">&bull;</span>
-                <a href="#" class="text-white text-decoration-none">Privacy</a>
-                <span class="text-white mx-2">&bull;</span>
-                <a href="#" class="text-white text-decoration-none">Terms</a>
-                <span class="text-white mx-2">&bull;</span>
-                <a href="#" class="text-white text-decoration-none">Contact</a>
-            </div>
-            <div class="d-flex justify-content-center gap-2">
-                <a href="#" class="text-white"><i class="bi bi-twitter"></i></a>
-                <a href="#" class="text-white"><i class="bi bi-facebook"></i></a>
-                <a href="#" class="text-white"><i class="bi bi-instagram"></i></a>
-            </div>
-        </div>
-    </footer>
-
-    <!-- MODALS -->
-    <!-- Rating Modal -->
-    <div class="modal fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="ratingModalLabel">
-                        <i class="bi bi-star me-2"></i>Rate This Series
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <h2 class="mb-4">Breaking Bad</h2>
-                    <div class="star-rating mb-4" id="starRating">
-                        <i class="bi bi-star fs-1 mx-1" data-rating="1"></i>
-                        <i class="bi bi-star fs-1 mx-1" data-rating="2"></i>
-                        <i class="bi bi-star fs-1 mx-1" data-rating="3"></i>
-                        <i class="bi bi-star fs-1 mx-1" data-rating="4"></i>
-                        <i class="bi bi-star fs-1 mx-1" data-rating="5"></i>
-                        <i class="bi bi-star fs-1 mx-1" data-rating="6"></i>
-                        <i class="bi bi-star fs-1 mx-1" data-rating="7"></i>
-                        <i class="bi bi-star fs-1 mx-1" data-rating="8"></i>
-                        <i class="bi bi-star fs-1 mx-1" data-rating="9"></i>
-                        <i class="bi bi-star fs-1 mx-1" data-rating="10"></i>
-                    </div>
-                    <p class="text-white">Click on a star to rate</p>
-                    <div id="ratingValue" class="display-4 text-warning mb-3" style="display: none;">0/10</div>
-                </div>
-                <div class="modal-footer border-0 justify-content-center">
-                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="submitRating">Submit Rating</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Review Modal -->
-    <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="reviewModalLabel">
-                        <i class="bi bi-pencil me-2"></i>Write a Review
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="reviewForm">
-                        <div class="mb-3">
-                            <label for="reviewTitle" class="form-label">Review Title</label>
-                            <input type="text" class="form-control" id="reviewTitle" placeholder="Give your review a title" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="reviewText" class="form-label">Your Review</label>
-                            <textarea class="form-control" id="reviewText" rows="6" placeholder="Share your thoughts about this series..." required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Your Rating</label>
-                            <div id="reviewStarRating" class="d-flex gap-2">
-                                <i class="bi bi-star fs-3" data-rating="1"></i>
-                                <i class="bi bi-star fs-3" data-rating="2"></i>
-                                <i class="bi bi-star fs-3" data-rating="3"></i>
-                                <i class="bi bi-star fs-3" data-rating="4"></i>
-                                <i class="bi bi-star fs-3" data-rating="5"></i>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-send me-2"></i>Submit Review
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Search Modal -->
-    <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="searchModalLabel">
-                        <i class="bi bi-search me-2"></i>Search CineGrid
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="search" class="form-control form-control-lg" placeholder="Start typing a movie, series, or actor...">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Login Modal -->
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="loginModalLabel">Log In to CineGrid</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="loginForm">
-                        <!-- for email input -->
-                        <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="emailInput" placeholder="name@example.com"
-                                required>
-                            <label for="emailInput">Email address</label>
-                        </div>
-
-                        <!-- for password input -->
-                        <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="passwordInput" placeholder="Password"
-                                required>
-                            <label for="passwordInput">Password</label>
-                        </div>
-
-                        <!-- submit button with a loader-->
-                        <button type="submit" class="btn btn-primary w-100 mt-3" id="loginBtn">
-                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                            <span class="btn-text">Login</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- sign in setter -->
-                <div class="modal-footer justify-content-center border-0">
-                    <small class="text-muted">New user?
-                        <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signupModal"
-                            class="text-decoration-none">Create Account</a>
-                    </small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sign up Modal -->
-    <div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="signupModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="signupModalLabel">Sign up to CineGrid</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="signupForm">
-                        <!-- for fullname input -->
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="signupName" placeholder="Full Name" required>
-                            <label for="signupName">Full Name</label>
-                        </div>
-
-                        <!-- for email inpput -->
-                        <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="signupEmail" placeholder="Email Address"
-                                required>
-                            <label for="signupEmail">Email Address</label>
-                        </div>
-
-                        <!-- for password input -->
-                        <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="signupPassword" placeholder="Password"
-                                required>
-                            <label for="signupPassword">Password</label>
-                        </div>
-
-                        <!-- submit button with a loader -->
-                        <button type="submit" class="btn btn-primary w-100 mt-3" id="signupBtn">
-                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                            <span class="btn-text">Sign up</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- login setter -->
-                <div class="modal-footer justify-content-center border-0">
-                    <small class="text-muted">Already have an account?
-                        <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal"
-                            class="text-decoration-none">Log In Account</a>
-                    </small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
-
-    <!-- Custom JavaScript -->
-    <script>
-        // Star Rating Interaction (10-point scale)
-        const starRating = document.getElementById('starRating');
-        const stars = starRating?.querySelectorAll('i');
-        const ratingValue = document.getElementById('ratingValue');
-        let selectedRating = 0;
-
-        stars?.forEach(star => {
-            star.style.cursor = 'pointer';
-            
-            star.addEventListener('mouseenter', () => {
-                const rating = star.getAttribute('data-rating');
-                highlightStars(rating);
-            });
-
-            star.addEventListener('click', () => {
-                selectedRating = star.getAttribute('data-rating');
-                ratingValue.textContent = selectedRating + '/10';
-                ratingValue.style.display = 'block';
-            });
-        });
-
-        starRating?.addEventListener('mouseleave', () => {
-            if (selectedRating > 0) {
-                highlightStars(selectedRating);
-            } else {
-                resetStars();
-            }
-        });
-
-        function highlightStars(rating) {
-            stars?.forEach(star => {
-                if (star.getAttribute('data-rating') <= rating) {
-                    star.classList.remove('bi-star');
-                    star.classList.add('bi-star-fill', 'text-warning');
-                } else {
-                    star.classList.remove('bi-star-fill', 'text-warning');
-                    star.classList.add('bi-star');
-                }
-            });
-        }
-
-        function resetStars() {
-            stars?.forEach(star => {
-                star.classList.remove('bi-star-fill', 'text-warning');
-                star.classList.add('bi-star');
-            });
-        }
-
-        // Submit Rating
-        document.getElementById('submitRating')?.addEventListener('click', () => {
-            if (selectedRating > 0) {
-                alert('You rated this series ' + selectedRating + '/10!');
-                const modalEl = document.getElementById('ratingModal');
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                modal.hide();
-            } else {
-                alert('Please select a rating first!');
-            }
-        });
-
-        // Review Star Rating (5-point scale)
-        const reviewStars = document.querySelectorAll('#reviewStarRating i');
-        let reviewRating = 0;
-
-        reviewStars.forEach(star => {
-            star.style.cursor = 'pointer';
-            
-            star.addEventListener('click', () => {
-                reviewRating = star.getAttribute('data-rating');
-                reviewStars.forEach(s => {
-                    if (s.getAttribute('data-rating') <= reviewRating) {
-                        s.classList.remove('bi-star');
-                        s.classList.add('bi-star-fill', 'text-warning');
-                    } else {
-                        s.classList.remove('bi-star-fill', 'text-warning');
-                        s.classList.add('bi-star');
-                    }
-                });
-            });
-        });
-
-        // Submit Review
-        document.getElementById('reviewForm')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (reviewRating === 0) {
-                alert('Please rate the series!');
-                return;
-            }
-            alert('Review submitted successfully!');
-            const modalEl = document.getElementById('reviewModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            modal.hide();
-        });
-
-        // Episode Card Click
-        document.querySelectorAll('.episode-card').forEach(card => {
-            card.addEventListener('click', () => {
-                alert('Episode details or playback would open here!');
-            });
-        });
-    </script>
-
-</body>
-
-</html>
+    <?php include 'includes/movie-details-modals.php'?>
+    
+    <?php include 'includes/footer.php'; ?>
