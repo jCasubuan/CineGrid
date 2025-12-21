@@ -27,8 +27,40 @@
     integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
     crossorigin="anonymous"></script>
 
+    <?php if (!empty($_SESSION['login_error'])): ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const loginModal = new bootstrap.Modal(
+            document.getElementById('loginModal')
+        );
+        loginModal.show();
+    });
+    </script>
+    <?php endif; ?>
+
 <!-- Global JavaScript link only -->
-<!-- <script src="assets/js/main.js"></script> -->
+<script src="assets/js/main.js"></script>
+
+<!-- Page-specific JS -->
+<?php if ($current_page === 'movies'): ?>
+    <script src="assets/js/movies.js"></script>
+<?php endif; ?>
+
+<?php if ($current_page === 'series'): ?>
+    <script src="assets/js/series.js"></script>
+<?php endif; ?>
+
+<?php if (in_array($current_page, ['movie-details', 'series-details'])): ?>
+    <script src="assets/js/details-rating.js"></script>
+<?php endif; ?>
+
+<!-- 
+    Note for Developers for the .js file declaration:
+        The global .js should be declare first 
+        which is named main.js)
+        before page-specific js, this is
+        mandatory!
+-->
 
 </body>
 </html>

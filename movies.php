@@ -1,7 +1,6 @@
 <!-- PHP connection -->
-<?php 
-  session_start(); 
-  include 'includes/db_connect.php'; 
+<?php
+require_once 'includes/init.php';
 ?>
 
 <!DOCTYPE html>
@@ -11,7 +10,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Browse all movies on CineGrid - Filter by genre, year, and rating">
-    <title>CineGrid | Movies</title>
+    <title>CineGrid | <?php echo ucfirst($current_page); ?></title>
 
     <!-- Site Icon / Logo -->
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
@@ -29,10 +28,6 @@
     <!-- CineGrid base styles -->
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/listings.css"> 
-    <!-- 
-        listings.css is the css shared by movies.php and series.php, 
-        though this is not the main.css 
-    -->
 
     <!-- Bootstrap overrides (modals, buttons, navbar, etc.) -->
     <link rel="stylesheet" href="assets/css/bootstrap-overrides.css">
@@ -41,7 +36,6 @@
 <body>
 
     <!-- for PHP -->
-    <?php $current_page = 'movies'; ?>
     <?php include 'includes/navbar.php'; ?>
 
     <!-- MAIN CONTENT -->
@@ -371,7 +365,5 @@
 
     <!-- Filter overlay for mobile -->
     <div class="filter-overlay" id="filterOverlay"></div>
-
-    <script src="assets/js/movies.js"></script>
     
     <?php include 'includes/footer.php'; ?>

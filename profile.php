@@ -1,126 +1,41 @@
+<!-- PHP connection -->
+<?php
+require_once 'includes/init.php';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Your personal CineGrid account - track ratings, manage watchlist, and discover new content">
-    <title>CineGrid | Your Account</title>
+    <meta name="description" content="CineGrid - Your ultimate destination for movies, series, and entertainment">
+
+   <title>CineGrid | <?php echo ucfirst($current_page); ?></title>
+
+    <!-- Site Icon / Logo -->
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/svg+xml" href="assets/img/logo.svg">
 
     <!-- BootStrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="main.css">
+    <!-- Boostrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+        rel="stylesheet">
+
+    <!-- CineGrid base styles -->
+    <link rel="stylesheet" href="assets/css/main.css">
+
+    <!-- Bootstrap overrides (modals, buttons, navbar, etc.) -->
+    <link rel="stylesheet" href="assets/css/bootstrap-overrides.css">
 </head>
 
 <body>
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-        <div class="container">
-            <!-- Logo with Icon -->
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="home.html">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="32" height="32" class="me-2">
-                    <rect x="40" y="50" width="120" height="100" fill="none" stroke="#667eea" stroke-width="4" rx="8" />
-                    <line x1="100" y1="50" x2="100" y2="150" stroke="#667eea" stroke-width="4" />
-                    <line x1="40" y1="100" x2="160" y2="100" stroke="#667eea" stroke-width="4" />
-                    <rect x="30" y="60" width="8" height="12" fill="#667eea" rx="2" />
-                    <rect x="30" y="94" width="8" height="12" fill="#667eea" rx="2" />
-                    <rect x="30" y="128" width="8" height="12" fill="#667eea" rx="2" />
-                    <rect x="162" y="60" width="8" height="12" fill="#667eea" rx="2" />
-                    <rect x="162" y="94" width="8" height="12" fill="#667eea" rx="2" />
-                    <rect x="162" y="128" width="8" height="12" fill="#667eea" rx="2" />
-                    <polygon points="90,80 90,120 120,100" fill="#667eea" />
-                </svg>
-                CineGrid
-            </a>
-
-            <!-- Hamburger Menu Button -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Navigation links -->
-                <ul class="navbar-nav ms-auto me-3">
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="home.html">
-                            <i class="bi bi-house-door me-1"></i>Home
-                        </a>
-                    </li>
-
-                    <!-- Exploration dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false" id="exploreDropdown">
-                            <i class="bi bi-compass me-1"></i>Explore
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="exploreDropdown">
-                            <li>
-                                <a class="dropdown-item" href="home.html#popular-movies">
-                                    <i class="bi bi-fire me-2"></i>Trending
-                                </a>
-                            </li>
-                            <li><a class="dropdown-item" href="movies.html"><i class="bi bi-film me-2"></i>Popular
-                                    Movies</a></li>
-                            <li><a class="dropdown-item" href="series.html"><i class="bi bi-tv me-2"></i>Popular
-                                    Series</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-star me-2"></i>Top Actors</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-calendar-event me-2"></i>Upcoming
-                                    Releases</a></li>
-                        </ul>
-                    </li>
-                </ul>
-
-                <!-- Action buttons -->
-                <div class="d-flex gap-2">
-                    <!-- Search Button -->
-                    <button class="btn btn-sm btn-outline-light d-flex align-items-center" type="button"
-                        data-bs-toggle="modal" data-bs-target="#searchModal" aria-label="Search movies and series">
-                        <i class="bi bi-search me-1"></i> Search
-                    </button>
-
-
-                    <!-- profile dropdown -->
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-light d-flex align-items-center dropdown-toggle"
-                            type="button" id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-fill me-1"></i> Profile
-                        </button>
-
-                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end"
-                            aria-labelledby="userProfileDropdown">
-                            <li>
-                                <a class="dropdown-item" href="login-home.html">
-                                    <i class="bi bi-person me-2"></i>View Profile
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="settings.html">
-                                    <i class="bi bi-gear me-2"></i> Settings
-                                </a>
-                            </li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li>
-                                <button class="dropdown-item text-danger" onclick="alert('Logging out...')">
-                                    <i class="bi bi-box-arrow-right me-2"></i> Log Out
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <!-- navbar.php connection -->
+    <?php include 'includes/navbar.php'; ?>
 
     <!-- Main content -->
     <main>
@@ -325,50 +240,4 @@
         </div>
     </main>
 
-    <!-- footer -->
-    <footer class="bg-dark text-center py-4 mt-5">
-        <div class="container">
-            <p class="mb-2">© 2025 CineGrid. All rights reserved.</p>
-            <div class="text-center mb-3">
-                <a href="#" class="text-white text-decoration-none">About</a>
-                <span class="text-white mx-2">&bull;</span>
-                <a href="#" class="text-white text-decoration-none">Privacy</a>
-                <span class="text-white mx-2">&bull;</span>
-                <a href="#" class="text-white text-decoration-none">Terms</a>
-                <span class="text-white mx-2">&bull;</span>
-                <a href="#" class="text-white text-decoration-none">Contact</a>
-            </div>
-            <div class="d-flex justify-content-center gap-2">
-                <a href="#" class="text-white"><i class="bi bi-twitter"></i></a>
-                <a href="#" class="text-white"><i class="bi bi-facebook"></i></a>
-                <a href="#" class="text-white"><i class="bi bi-instagram"></i></a>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Search Modal -->
-    <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="searchModalLabel">Search CineGrid</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="text" class="form-control form-control-lg"
-                        placeholder="Start typing a movie, series, or actor...">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
-
-</body>
-
-
-</html>
+    <?php include 'includes/footer.php'; ?>

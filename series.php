@@ -1,7 +1,6 @@
 <!-- PHP connection -->
-<?php 
-  session_start(); 
-  include 'includes/db_connect.php'; 
+<?php
+require_once 'includes/init.php';
 ?>
 
 <!DOCTYPE html>
@@ -11,7 +10,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Browse all TV series on CineGrid - Filter by genre, year, and rating">
-    <title>CineGrid | Series</title>
+    <title>CineGrid | <?php echo ucfirst($current_page); ?></title>
 
     <!-- Site Icon / Logo -->
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
@@ -29,10 +28,6 @@
     <!-- CineGrid base styles -->
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/listings.css"> 
-    <!-- 
-        listings.css is the css file shared by movies.php and series.php, 
-        though this is not the main.css 
-    -->
 
     <!-- Bootstrap overrides (modals, buttons, navbar, etc.) -->
     <link rel="stylesheet" href="assets/css/bootstrap-overrides.css">
@@ -42,7 +37,6 @@
 
 <body>
     <!-- for PHP -->
-    <?php $current_page = 'series'; ?>
     <?php include 'includes/navbar.php'; ?>
 
     <!-- MAIN CONTENT -->
@@ -73,27 +67,27 @@
                     <!-- Genre Filter -->
                     <div class="filter-section">
                         <h6 class="mb-3"><i class="bi bi-tags me-2"></i>Genre</h6>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift ">
                             <input type="checkbox" id="action" class="form-check-input">
                             <label for="action">Action</label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="comedy" class="form-check-input">
                             <label for="comedy">Comedy</label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="drama" class="form-check-input">
                             <label for="drama">Drama</label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="crime" class="form-check-input">
                             <label for="crime">Crime</label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="scifi" class="form-check-input">
                             <label for="scifi">Sci-Fi</label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="fantasy" class="form-check-input">
                             <label for="fantasy">Fantasy</label>
                         </div>
@@ -102,19 +96,19 @@
                     <!-- Status Filter -->
                     <div class="filter-section">
                         <h6 class="mb-3"><i class="bi bi-broadcast me-2"></i>Status</h6>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="ongoing" class="form-check-input">
                             <label for="ongoing">
                                 <i class="bi bi-play-circle text-success"></i> Ongoing
                             </label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="completed" class="form-check-input">
                             <label for="completed">
                                 <i class="bi bi-check-circle text-info"></i> Completed
                             </label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="upcoming" class="form-check-input">
                             <label for="upcoming">
                                 <i class="bi bi-clock-history text-warning"></i> Upcoming
@@ -148,25 +142,25 @@
                     <!-- Rating Filter -->
                     <div class="filter-section">
                         <h6 class="mb-3"><i class="bi bi-star me-2"></i>Rating</h6>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="rating9" class="form-check-input">
                             <label for="rating9">
                                 <i class="bi bi-star-fill text-warning"></i> 9+ Excellent
                             </label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="rating8" class="form-check-input">
                             <label for="rating8">
                                 <i class="bi bi-star-fill text-warning"></i> 8+ Very Good
                             </label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="rating7" class="form-check-input">
                             <label for="rating7">
                                 <i class="bi bi-star-fill text-warning"></i> 7+ Good
                             </label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="rating6" class="form-check-input">
                             <label for="rating6">
                                 <i class="bi bi-star-fill text-warning"></i> 6+ Average
@@ -177,19 +171,19 @@
                     <!-- Seasons Filter -->
                     <div class="filter-section">
                         <h6 class="mb-3"><i class="bi bi-collection-play me-2"></i>Seasons</h6>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="season1" class="form-check-input">
                             <label for="season1">1 Season</label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="seasons2-3" class="form-check-input">
                             <label for="seasons2-3">2-3 Seasons</label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="seasons4-6" class="form-check-input">
                             <label for="seasons4-6">4-6 Seasons</label>
                         </div>
-                        <div class="filter-option">
+                        <div class="filter-option hover-lift">
                             <input type="checkbox" id="seasons7plus" class="form-check-input">
                             <label for="seasons7plus">7+ Seasons</label>
                         </div>
@@ -210,7 +204,7 @@
             <!-- SERIES GRID -->
             <div class="col-lg-9">
                 <!-- Results Header -->
-                <div class="results-header">
+                <div class="results-header ui-panel">
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                         <div>
                             <h2 class="mb-1">All Series</h2>
@@ -461,277 +455,4 @@
     <!-- Filter Overlay for Mobile -->
     <div class="filter-overlay" id="filterOverlay"></div>
 
-    <!-- footer -->
-    <footer class="bg-dark text-center py-4 mt-5">
-        <div class="container">
-            <p class="mb-2">© 2025 CineGrid. All rights reserved.</p>
-            <div class="text-center mb-3">
-                <a href="#" class="text-white text-decoration-none">About</a>
-                <span class="text-white mx-2">&bull;</span>
-                <a href="#" class="text-white text-decoration-none">Privacy</a>
-                <span class="text-white mx-2">&bull;</span>
-                <a href="#" class="text-white text-decoration-none">Terms</a>
-                <span class="text-white mx-2">&bull;</span>
-                <a href="#" class="text-white text-decoration-none">Contact</a>
-            </div>
-            <div class="d-flex justify-content-center gap-2">
-                <a href="#" class="text-white"><i class="bi bi-twitter"></i></a>
-                <a href="#" class="text-white"><i class="bi bi-facebook"></i></a>
-                <a href="#" class="text-white"><i class="bi bi-instagram"></i></a>
-            </div>
-        </div>
-    </footer>
-
-    <!-- MODALS -->
-    <!-- Searh Field Modal-->
-    <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="searchModalLabel">
-                        <i class="bi bi-search me-2"></i>Search CineGrid
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="search" class="form-control form-control-lg"
-                        placeholder="Start typing a movie, series, or actor..." aria-label="Search">
-                    <div class="mt-3">
-                        <small class="text-white">Trending: Marvel, Christpher Nolan, Squid Game</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Login Modal -->
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="loginModalLabel">Log In to CineGrid</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="loginForm">
-                        <!-- for email input -->
-                        <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="emailInput" placeholder="name@example.com"
-                                required>
-                            <label for="emailInput">Email address</label>
-                        </div>
-
-                        <!-- for password input -->
-                        <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="passwordInput" placeholder="Password"
-                                required>
-                            <label for="passwordInput">Password</label>
-                        </div>
-
-                        <!-- submit button with a loader-->
-                        <button type="submit" class="btn btn-primary w-100 mt-3" id="loginBtn">
-                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                            <span class="btn-text">Login</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- sign in setter -->
-                <div class="modal-footer justify-content-center border-0">
-                    <small class="text-muted">New user?
-                        <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signupModal"
-                            class="text-decoration-none">Create Account</a>
-                    </small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sign up Modal -->
-    <div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="signupModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="signupModalLabel">Sign up to CineGrid</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="signupForm">
-                        <!-- for fullname input -->
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="signupName" placeholder="Full Name" required>
-                            <label for="signupName">Full Name</label>
-                        </div>
-
-                        <!-- for email inpput -->
-                        <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="signupEmail" placeholder="Email Address"
-                                required>
-                            <label for="signupEmail">Email Address</label>
-                        </div>
-
-                        <!-- for password input -->
-                        <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="signupPassword" placeholder="Password"
-                                required>
-                            <label for="signupPassword">Password</label>
-                        </div>
-
-                        <!-- submit button with a loader -->
-                        <button type="submit" class="btn btn-primary w-100 mt-3" id="signupBtn">
-                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                            <span class="btn-text">Sign up</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- login setter -->
-                <div class="modal-footer justify-content-center border-0">
-                    <small class="text-muted">Already have an account?
-                        <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal"
-                            class="text-decoration-none">Log In Account</a>
-                    </small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
-
-    <!-- Custom JavaScript -->
-    <script>
-        // Mobile Filter Toggle
-        const filterToggle = document.getElementById('filterToggle');
-        const filterSidebar = document.getElementById('filterSidebar');
-        const filterOverlay = document.getElementById('filterOverlay');
-        const closeFilter = document.getElementById('closeFilter');
-
-        filterToggle?.addEventListener('click', () => {
-            filterSidebar.classList.add('show');
-            filterOverlay.classList.add('show');
-        });
-
-        closeFilter?.addEventListener('click', () => {
-            filterSidebar.classList.remove('show');
-            filterOverlay.classList.remove('show');
-        });
-
-        filterOverlay?.addEventListener('click', () => {
-            filterSidebar.classList.remove('show');
-            filterOverlay.classList.remove('show');
-        });
-
-        // View Toggle (Grid/List)
-        const gridViewBtn = document.getElementById('gridView');
-        const listViewBtn = document.getElementById('listView');
-        const seriesGrid = document.getElementById('seriesGrid');
-
-        gridViewBtn?.addEventListener('click', () => {
-            seriesGrid.classList.remove('list-view');
-            seriesGrid.className = 'row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4';
-            gridViewBtn.classList.add('active');
-            listViewBtn.classList.remove('active');
-        });
-
-        listViewBtn?.addEventListener('click', () => {
-            seriesGrid.className = 'list-view';
-            listViewBtn.classList.add('active');
-            gridViewBtn.classList.remove('active');
-        });
-
-        // Sort Dropdown
-        const sortBy = document.getElementById('sortBy');
-        sortBy?.addEventListener('change', (e) => {
-            console.log('Sorting by:', e.target.value);
-            alert('Sorting by: ' + e.target.options[e.target.selectedIndex].text);
-        });
-
-        // Apply Filters
-        const applyFilters = document.getElementById('applyFilters');
-        applyFilters?.addEventListener('click', () => {
-            const filters = {
-                genres: [],
-                status: [],
-                yearFrom: document.getElementById('yearFrom').value,
-                yearTo: document.getElementById('yearTo').value,
-                ratings: [],
-                seasons: []
-            };
-
-            // Get genre checkboxes
-            document.querySelectorAll('.filter-section:first-child input[type="checkbox"]:checked').forEach(cb => {
-                filters.genres.push(cb.id);
-            });
-
-            // Get status checkboxes
-            document.querySelectorAll('.filter-section:nth-child(2) input[type="checkbox"]:checked').forEach(cb => {
-                filters.status.push(cb.id);
-            });
-
-            // Get rating checkboxes
-            document.querySelectorAll('.filter-section:nth-child(4) input[type="checkbox"]:checked').forEach(cb => {
-                filters.ratings.push(cb.id);
-            });
-
-            // Get seasons checkboxes
-            document.querySelectorAll('.filter-section:nth-child(5) input[type="checkbox"]:checked').forEach(cb => {
-                filters.seasons.push(cb.id);
-            });
-
-            console.log('Applied filters:', filters);
-            alert('Filters applied! Check console for details.');
-
-            // Close mobile filter
-            filterSidebar.classList.remove('show');
-            filterOverlay.classList.remove('show');
-        });
-
-        // Clear Filters
-        const clearFilters = document.getElementById('clearFilters');
-        clearFilters?.addEventListener('click', () => {
-            // Uncheck all checkboxes
-            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                cb.checked = false;
-            });
-
-            // Reset dropdowns
-            document.getElementById('yearFrom').selectedIndex = 0;
-            document.getElementById('yearTo').selectedIndex = 0;
-
-            alert('All filters cleared!');
-        });
-
-        // Pagination
-        const paginationLinks = document.querySelectorAll('.pagination .page-link');
-        paginationLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                if (!e.target.closest('.page-item').classList.contains('disabled') && 
-                    e.target.textContent !== '...') {
-                    e.preventDefault();
-                    
-                    // Remove active class from all
-                    document.querySelectorAll('.pagination .page-item').forEach(item => {
-                        item.classList.remove('active');
-                    });
-                    
-                    // Add active to clicked
-                    e.target.closest('.page-item').classList.add('active');
-                    
-                    // Scroll to top
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    
-                    console.log('Loading page:', e.target.textContent);
-                }
-            });
-        });
-    </script>
-
-</body>
-
-</html>
+    <?php include 'includes/footer.php'; ?>

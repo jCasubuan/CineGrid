@@ -1,7 +1,6 @@
 <!-- PHP connection -->
-<?php 
-  session_start(); 
-  include 'includes/db_connect.php'; 
+<?php
+require_once 'includes/init.php';
 ?>
 
 <!DOCTYPE html>
@@ -28,20 +27,19 @@
 
     <!-- CineGrid base styles -->
     <link rel="stylesheet" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/movie-details.css">
+    <link rel="stylesheet" href="assets/css/details.css">
 
     <!-- Bootstrap overrides (modals, buttons, navbar, etc.) -->
-    <link rel="stylesheet" href="assets/css/bootstrap-overrides.css">
+    <link rel="stylesheet"   href="assets/css/bootstrap-overrides.css">
 </head>
 
-<body>
+<body data-type="movie">
     <!-- for PHP -->
-    <?php $current_page = 'movies'; ?>
     <?php include 'includes/navbar.php'; ?>
 
     <!-- HERO BANNER -->
-    <section class="movie-hero" style="background-image: url('https://via.placeholder.com/1920x1080/1a1a2e/667eea?text=The+Dark+Knight+Banner');">
-        <div class="movie-hero-overlay"></div>
+    <section class="details-hero" style="background-image: url('https://via.placeholder.com/1920x1080/1a1a2e/667eea?text=The+Dark+Knight+Banner');">
+        <div class="details-hero-overlay"></div>
     </section>
 
     <!-- MAIN CONTENT -->
@@ -81,7 +79,7 @@
                 <!-- Rating & Actions -->
                 <div class="row g-3 mb-4">
                     <div class="col-auto">
-                        <div class="rating-circle">
+                        <div class="rating-circle" style="background: conic-gradient(#4caf50 0% 87%, #ddd 87% 100%);">
                             <span class="rating-value">8.7</span>
                         </div>
                         <small class="d-block text-center mt-2 text-white">IMDb Rating</small>
@@ -348,7 +346,7 @@
             <div class="row row-cols-2 row-cols-md-4 g-4">
                 <!-- Similar Movie 1 -->
                 <div class="col">
-                    <a href="movie-details.html" class="text-decoration-none">
+                    <a href="movie-details.php" class="text-decoration-none">
                         <div class="card media-card bg-dark text-white position-relative">
                             <img src="https://via.placeholder.com/300x450/667eea/ffffff?text=Batman+Begins" 
                                  class="card-img-top" alt="Batman Begins">
@@ -365,7 +363,7 @@
 
                 <!-- Similar Movie 2 -->
                 <div class="col">
-                    <a href="movie-details.html" class="text-decoration-none">
+                    <a href="movie-details.php" class="text-decoration-none">
                         <div class="card media-card bg-dark text-white position-relative">
                             <img src="https://via.placeholder.com/300x450/764ba2/ffffff?text=Inception" 
                                  class="card-img-top" alt="Inception">
@@ -382,7 +380,7 @@
 
                 <!-- Similar Movie 3 -->
                 <div class="col">
-                    <a href="movie-details.html" class="text-decoration-none">
+                    <a href="movie-details.php" class="text-decoration-none">
                         <div class="card media-card bg-dark text-white position-relative">
                             <img src="https://via.placeholder.com/300x450/4ecdc4/ffffff?text=The+Prestige" 
                                  class="card-img-top" alt="The Prestige">
@@ -399,7 +397,7 @@
 
                 <!-- Similar Movie 4 -->
                 <div class="col">
-                    <a href="movie-details.html" class="text-decoration-none">
+                    <a href="movie-details.php" class="text-decoration-none">
                         <div class="card media-card bg-dark text-white position-relative">
                             <img src="https://via.placeholder.com/300x450/ff6b6b/ffffff?text=Joker" 
                                  class="card-img-top" alt="Joker">
@@ -419,9 +417,6 @@
 
 
     <?php include 'includes/movie-details-modals.php'?>
-
-    <!-- Specific JS file -->
-    <script src="assets/js/movie-details.js"></script>
     
     <?php include 'includes/footer.php'; ?>
 

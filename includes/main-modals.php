@@ -31,18 +31,25 @@
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="loginForm">
+
+                    <?php if (!empty($_SESSION['login_error'])): ?>
+                        <div class="alert alert-danger text-center">
+                            <?= $_SESSION['login_error']; ?>
+                        </div>
+                        <?php unset($_SESSION['login_error']); ?>
+                    <?php endif; ?>
+                    
+                    <form id="loginForm" action="login.php" method="POST">
+
                         <!-- for email input -->
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="emailInput" placeholder="name@example.com"
-                                required>
+                            <input type="email" name="email" class="form-control" id="emailInput" placeholder="name@example.com" required>
                             <label for="emailInput">Email address</label>
                         </div>
 
                         <!-- for password input -->
                         <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="passwordInput" placeholder="Password"
-                                required>
+                            <input type="password" name="password" class="form-control" id="passwordInput" placeholder="Password" required>
                             <label for="passwordInput">Password</label>
                         </div>
 
@@ -75,24 +82,22 @@
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="signupForm">
+                    <form id="signupForm" action="signup.php" method="POST">
                         <!-- for fullname input -->
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="signupName" placeholder="Full Name" required>
+                            <input type="text" name="fullname" class="form-control" id="signupName" placeholder="Full Name" required>
                             <label for="signupName">Full Name</label>
                         </div>
 
                         <!-- for email inpput -->
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="signupEmail" placeholder="Email Address"
-                                required>
+                            <input type="email" name="email" class="form-control" id="signupEmail" placeholder="Email Address" required>
                             <label for="signupEmail">Email Address</label>
                         </div>
 
                         <!-- for password input -->
                         <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="signupPassword" placeholder="Password"
-                                required>
+                            <input type="password" name="password" class="form-control" id="signupPassword" placeholder="Password" required>
                             <label for="signupPassword">Password</label>
                         </div>
 
@@ -110,6 +115,23 @@
                         <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal"
                             class="text-decoration-none">Log In Account</a>
                     </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout confirmation -->
+    <div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-body text-center py-4">
+                    <i class="bi bi-exclamation-circle text-warning display-4 mb-3"></i>
+                    <h5>Logging Out?</h5>
+                    <p class="text-muted small">Are you sure you want to end your session?</p>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Cancel</button>
+                        <a href="logout.php" class="btn btn-danger w-100">Log Out</a>
+                    </div>
                 </div>
             </div>
         </div>
