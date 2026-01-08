@@ -4,25 +4,32 @@ For movies (copy and paste this in the add-movie modals, just be careful to not 
 
 Title: Avengers: Infinity War
 Year: 2018
+Duration: 149
 Rating: 8.4 (or just think what rating you want, it doesn't matter)
-Overview: The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation and ruin puts an end to the universe.
+Content Rating: PG-13
+Language: English
+Overview: As the Avengers and their allies have continued to protect the world from threats too large for any one hero to handle, a new danger has emerged from the cosmic shadows: Thanos. A despot of intergalactic infamy, his goal is to collect all six Infinity Stones, artifacts of unimaginable power, and use them to inflict his twisted will on all of reality. Everything the Avengers have fought for has led up to this moment - the fate of Earth and existence itself has never been more uncertain.
+TMDB ID (movie id): 299536
 Poster Path: assets/img/posters/avengers-infinity-war-poster.jpg
 Backdrop Path: assets/img/backdrops/avengers-infinity-war-backdrop.jpg
 Genre: Action, Adventure, Sci-fi
 Trailer: https://youtu.be/6ZfuNTqbHE8
 Directors: Anthony Russo 
            Joe Russo
-Movie Cast and their Character Name:
-Robert Downey Jr - Iron Man, Tony Stark
-Josh Brolin - Thanos
-Mark Ruffalo - Hulk, Bruce Banner
+Writers: Christoper Markus
+        Stephen McFeely
+        Stan Lee
+Movie Cast and their Character Name (its better to choose 6 characters only with their image_path):
+Robert Downey Jr - Iron Man, Tony Stark - assets/img/actors/robert-downey-jr.jpg
+Chris Evans - Captain America, Steve Rogers - assets/img/actors/chris-evans.jpg
+Chris Hemsworth - Thor Odinson - assets/img/actors/chris-hemsworth.jpg
+Mark Ruffalo - Hulk, Bruce Banner - assets/img/actors/mark-ruffalo.jpg
+Josh Brolin - Thanos - assets/img/actors/josh-brolin.jpg
+Benedict Cumberbatch - Stephen Strange - assets/img/actors/benedict-cumberbatch.jpg
 Scarlett Johansson - Natasha Romanoff
-Chris Evans - Captain America, Steve Rogers
-Chris Hemsworth - Thor Odinson
 Tom Holland - Spider-Man, Peter Parker
 Elizabeth Olsen - Scarlet Witch
 Paul Bettany - Vision
-Benedict Cumberbatch - Stephen Strange
 Anthony Mackie - Sam Wilson
 Tom Hiddleston - Loki
 Chris Pratt - Star-Lord
@@ -32,5 +39,84 @@ Vin Diesel - Groot
 Chadwick Boseman - Black Panther
 Benedict Wong - Wong
 
+note: just in case 
+UPDATE movies 
+SET tmdb_id = 299536 
+WHERE title LIKE '%Infinity War%';
 
 
+2. Avengers: Endgame
+
+Title: Avengers: Endgame
+Year: 2019
+Duration: 182
+Rating: 8.5
+Content Rating: PG-13
+Language: English
+Overview: After the devastating events of Avengers: Infinity War, the universe is in ruins due to the efforts of the Mad Titan, Thanos. With the help of remaining allies, the Avengers must assemble once more in order to undo Thanos' actions and restore order to the universe once and for all, no matter what consequences may be in store.
+TMDB ID (movie id): 299534
+Poster Path: assets/img/posters/avengers-endgame-poster.webp
+Backdrop Path: assets/img/backdrops/avengers-endgame-backdrop.jpg
+Genre: Action, Adventure, Sci-fi
+Trailer: https://www.youtube.com/watch?v=TcMBFSGVi1c
+Directors: Anthony Russo 
+           Joe Russo
+Writers: Christoper Markus
+        Stephen McFeely
+        Stan Lee
+Robert Downey Jr - Iron Man, Tony Stark - assets/img/actors/robert-downey-jr.jpg
+Chris Evans - Captain America, Steve Rogers - assets/img/actors/chris-evans.jpg
+Chris Hemsworth - Thor Odinson - assets/img/actors/chris-hemsworth.jpg
+Mark Ruffalo - Hulk, Bruce Banner - assets/img/actors/mark-ruffalo.jpg
+Scarlett Johansson - Natasha Romanoff, Black Widow - assets/img/actors/scarlett-johansson.jpg
+Jeremy Renner - Clint Barton, Hawkeye - assets/img/actors/jeremy-renner.jpg
+
+
+
+3. Avengers: Age of Ultron
+
+Title: Avengers: Age of Ultron
+Year: 2015
+Duration: 141
+Rating: 7.3
+Content Rating: PG-13
+Language: English
+Overview: When Tony Stark tries to jumpstart a dormant peacekeeping program, things go awry and Earth’s Mightiest Heroes are put to the ultimate test as the fate of the planet hangs in the balance. As the villainous Ultron emerges, it is up to The Avengers to stop him from enacting his terrible plans, and soon uneasy alliances and unexpected action pave the way for an epic and unique global adventure.
+TMDB ID (movie id): 99861
+Poster Path: assets/img/posters/avengers-age-of-ultron-poster.webp
+Backdrop Path: assets/img/backdrops/avengers-age-of-ultron-backdrop.jpg
+Genre: Action, Adventure, Sci-fi
+Trailer: https://www.youtube.com/watch?v=tmeOjFno6Do
+Directors: Joss Whedon
+Writers: Joss Whedon
+        Jack Kirby
+        Stan Lee
+Robert Downey Jr - Iron Man, Tony Stark - assets/img/actors/robert-downey-jr.jpg
+Chris Evans - Captain America, Steve Rogers - assets/img/actors/chris-evans.jpg
+Chris Hemsworth - Thor Odinson - assets/img/actors/chris-hemsworth.jpg
+Mark Ruffalo - Hulk, Bruce Banner - assets/img/actors/mark-ruffalo.jpg
+Scarlett Johansson - Natasha Romanoff, Black Widow - assets/img/actors/scarlett-johansson.jpg
+Jeremy Renner - Clint Barton, Hawkeye - assets/img/actors/jeremy-renner.jpg
+
+4. The Avengers
+
+Title: The Avengers
+Year: 2012
+Duration: 143
+Rating: 8.0
+Content Rating: PG-13
+Language: English
+Overview: When an unexpected enemy emerges and threatens global safety and security, Nick Fury, director of the international peacekeeping agency known as S.H.I.E.L.D., finds himself in need of a team to pull the world back from the brink of disaster. Spanning the globe, a daring recruitment effort begins!TMDB ID (movie id): 99861
+Poster Path: assets/img/posters/the-avengers-poster.jpg
+Backdrop Path: assets/img/backdrops/the-avengers-backdrop.webp
+Genre: Action, Adventure, Sci-fi
+Trailer: https://www.youtube.com/watch?v=eOrNdBpGMv8&t=1s
+Directors: Joss Whedon
+Writers: Joss Whedon
+        Zak Penn
+Robert Downey Jr - Iron Man, Tony Stark - assets/img/actors/robert-downey-jr.jpg
+Chris Evans - Captain America, Steve Rogers - assets/img/actors/chris-evans.jpg
+Chris Hemsworth - Thor Odinson - assets/img/actors/chris-hemsworth.jpg
+Mark Ruffalo - Hulk, Bruce Banner - assets/img/actors/mark-ruffalo.jpg
+Scarlett Johansson - Natasha Romanoff, Black Widow - assets/img/actors/scarlett-johansson.jpg
+Jeremy Renner - Clint Barton, Hawkeye - assets/img/actors/jeremy-renner.jpg

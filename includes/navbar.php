@@ -1,5 +1,5 @@
 <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top mb-0">
         <div class="container">
             <!-- Logo with Icon -->
             <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">

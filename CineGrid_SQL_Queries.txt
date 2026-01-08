@@ -34,12 +34,16 @@ CREATE TABLE movies (
     title VARCHAR(255) NOT NULL,
     overview TEXT,
     release_year YEAR,
+    duration INT DEFAULT 0,
     poster_path VARCHAR(255),
     backdrop_path VARCHAR(255),
     rating DECIMAL(3,1) DEFAULT 0.0,
     type ENUM('movie', 'series') DEFAULT 'movie',
+    content_rating VARCHAR(10) DEFAULT 'PG-13',
+    language VARCHAR(50) DEFAULT 'English',
     is_featured TINYINT(1) DEFAULT 0,
     status ENUM('active', 'hidden') DEFAULT 'active',
+    views_count INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -83,6 +87,9 @@ CREATE TABLE actors (
     name VARCHAR(191) NOT NULL UNIQUE
 );
 
+ALTER TABLE actors 
+ADD COLUMN image_path VARCHAR(255) DEFAULT 'assets/img/actors/default.jpg' AFTER name;
+
 3.6 ===== Cast =====
 CREATE TABLE movie_cast (
     movie_id INT NOT NULL,
@@ -106,6 +113,30 @@ CREATE TABLE movie_trailers (
 
 NOTE: after adding all of tables from numbers 3 to 3.7, you can stop right there and test with the data I provides
 from the other file. Make sure everything is working first.
+
+CREATE TABLE writers (
+    writer_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(191) NOT NULL UNIQUE
+);
+
+CREATE TABLE movie_writers (
+    movie_id INT NOT NULL,
+    writer_id INT NOT NULL,
+    PRIMARY KEY (movie_id, writer_id),
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id) ON DELETE CASCADE,
+    FOREIGN KEY (writer_id) REFERENCES writers(writer_id) ON DELETE CASCADE
+);
+
+CREATE TABLE movie_reviews (
+    review_id INT AUTO_INCREMENT PRIMARY KEY,
+    movie_id INT NOT NULL,
+    user_id INT NOT NULL,
+    rating_value DECIMAL(3,1) NOT NULL, 
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 
 4. ===== Series Table =====
@@ -233,6 +264,42 @@ CREATE TABLE series_cast (
     FOREIGN KEY (cast_id) REFERENCES cast_members(id) ON DELETE CASCADE
 );
 
+// for view, ratings, and reviews
+-- 1. Add views to your existing movies table
+ALTER TABLE movies ADD COLUMN views INT DEFAULT 0;
+
+-- 2. Create a table for actual user ratings (Stars)
+CREATE TABLE user_ratings (
+    rating_id INT AUTO_INCREMENT PRIMARY KEY,
+    movie_id INT,
+    user_id INT,
+    rating_value INT, -- e.g., 1 to 10
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. Create a table for text reviews
+CREATE TABLE movie_reviews (
+    review_id INT AUTO_INCREMENT PRIMARY KEY,
+    movie_id INT,
+    user_id INT,
+    review_text TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 1. Create the Writers table
+CREATE TABLE writers (
+    writer_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(191) NOT NULL UNIQUE
+);
+
+-- 2. Create the link table (Many-to-Many)
+CREATE TABLE movie_writers (
+    movie_id INT NOT NULL,
+    writer_id INT NOT NULL,
+    PRIMARY KEY (movie_id, writer_id),
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id) ON DELETE CASCADE,
+    FOREIGN KEY (writer_id) REFERENCES writers(writer_id) ON DELETE CASCADE
+);
 
 ===== Admin Account =====
 <?php
@@ -260,6 +327,9 @@ COUNT(*)
 as total 
 FROM users 
 GROUP BY role;
+
+SHOW TABLE STATUS LIKE 'users';
+ALTER TABLE users ENGINE=InnoDB;
 
 
 // DEBUG - REMOVE AFTER TESTING

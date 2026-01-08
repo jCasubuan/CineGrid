@@ -17,11 +17,12 @@
                     <form id="addMovieForm" action="../admin-actions/save-movie-basic.php" method="POST" autocomplete="off">
                         
                         <div class="row">
+
                             <div class="col-md-8 mb-3">
                                 <label class="form-label">Movie Title *</label>
                                 <input type="text" 
                                     name="title" 
-                                    class="form-control" 
+                                    class="form-control bg-dark text-white border-secondary" 
                                     placeholder="e.g., The Dark Knight"
                                     required>
                             </div>
@@ -29,21 +30,48 @@
                                 <label class="form-label">Release Year *</label>
                                 <input type="number" 
                                     name="release_year" 
-                                    class="form-control" 
+                                    class="form-control bg-dark text-white border-secondary" 
                                     min="1900" 
                                     max="2030" 
                                     placeholder="2024"
                                     required>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-white-50">Rating (0 - 10)</label>
+                            <div class="mb-3">
+                                <label class="form-label text-white-50">Duration (Minutes)*</label>
                                 <input type="number" 
-                                    name="rating" 
+                                    name="duration" 
                                     class="form-control bg-dark text-white border-secondary" 
-                                    step="0.1" 
-                                    min="0" 
-                                    max="10" 
-                                    placeholder="8.5">
+                                    placeholder="e.g., 149"
+                                    required>
+                                <small class="text-secondary">149 = 2h 29m</small>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label text-white-50">Rating (0-10)</label>
+                                    <input type="number" 
+                                        name="rating" 
+                                        class="form-control bg-dark text-white border-secondary" 
+                                        step="0.1"
+                                        min="0" 
+                                        max="10" 
+                                        placeholder="8.5">
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label text-white-50 small">Content Rating *</label>
+                                    <select name="content_rating" class="form-select bg-dark text-white border-secondary shadow-none" required>
+                                        <option value="G">G</option>
+                                        <option value="PG">PG</option>
+                                        <option value="PG-13" selected>PG-13</option>
+                                        <option value="R">R</option>
+                                        <option value="NC-17">NC-17</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label text-white-50">Language *</label>
+                                    <input type="text" name="language" class="form-control bg-dark text-white border-secondary" placeholder="e.g., English" value="English" required>
+                                </div>
                             </div>
                         </div>
 
@@ -57,12 +85,11 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">TMDb ID (Optional)</label>
-                            <input type="number" 
-                                name="tmdb_id" 
-                                class="form-control" 
-                                placeholder="e.g., 155">
-                            <small class="text-white">The Movie Database ID - Used for syncing data</small>
+                            <label class="form-label text-white-50 small">TMDB ID (Optional)</label>
+                            <input type="number" name="tmdb_id" class="form-control bg-dark text-white border-secondary" placeholder="e.g. 634649">
+                            <div class="form-text text-muted" style="font-size: 0.75rem;">
+                                Only the number from the TMDB URL.
+                            </div>
                         </div>
 
                         <div class="row">
@@ -261,6 +288,61 @@
         </div>
     </div>
 
+    <!-- add writers -->
+    <div class="modal fade" id="addMovieWritersModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pen-fill me-2"></i>Movie Writers
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="writersAlert" class="alert d-none"></div>
+
+                    <form id="movieWritersForm" action="../admin-actions/save-movie-writers.php" method="POST" autocomplete="off">
+                        <div id="writersContainer">
+                            <div class="input-group mb-2 writer-row">
+                                <input type="text" 
+                                    name="writers[]" 
+                                    class="form-control bg-dark text-white border-secondary" 
+                                    placeholder="Writer name (e.g., Jonathan Nolan)" 
+                                    required>
+                                <button type="button" class="btn btn-outline-danger remove-writer">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="button" 
+                                class="btn btn-outline-light btn-sm" 
+                                id="addWriterBtn">
+                            <i class="bi bi-plus-circle me-1"></i>Add another writer
+                        </button>
+                    </form>
+                </div>
+
+                <div class="modal-footer border-secondary">
+                    <button type="button" 
+                            class="btn btn-outline-secondary" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#addMovieDirectorsModal" 
+                            data-bs-dismiss="modal">
+                        Back
+                    </button>
+
+                    <button type="submit" 
+                            form="movieWritersForm" 
+                            class="btn btn-primary">
+                        Save & Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Movie Cast Modal -->
     <div class="modal fade" id="addMovieCastModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl">
@@ -278,25 +360,30 @@
                     <form id="movieCastForm" action="../admin-actions/save-movie-cast.php" method="POST" autocomplete="off">
                         <div id="castContainer">
                             <div class="row g-2 mb-2 cast-row">
-                                <div class="col-md-5">
-                                    <input
-                                        type="text"
-                                        name="actors[]"
-                                        class="form-control"
-                                        placeholder="Actor name"
-                                        required
-                                    >
+                                <div class="col-md-4">
+                                    <label class="form-label d-md-none">Actor Name</label>
+                                    <input type="text" 
+                                        name="actors[]" 
+                                        class="form-control bg-dark text-white border-secondary" 
+                                        placeholder="Actor name" 
+                                        required>
                                 </div>
-                                <div class="col-md-5">
-                                    <input
-                                        type="text"
-                                        name="characters[]"
-                                        class="form-control"
-                                        placeholder="Character name"
-                                        required
-                                    >
+                                <div class="col-md-4">
+                                    <label class="form-label d-md-none">Character Name</label>
+                                    <input type="text" 
+                                        name="characters[]" 
+                                        class="form-control bg-dark text-white border-secondary" 
+                                        placeholder="Character name" 
+                                        required>
                                 </div>
-                                <div class="col-md-2 d-grid">
+                                <div class="col-md-3">
+                                    <label class="form-label d-md-none">Image URL/Path</label>
+                                    <input type="text" 
+                                        name="actor_images[]" 
+                                        class="form-control bg-dark text-white border-secondary" 
+                                        placeholder="Image path (e.g. /assets/img/cast/name.jpg)">
+                                </div>
+                                <div class="col-md-1 d-grid">
                                     <button type="button" class="btn btn-outline-danger remove-cast">
                                         <i class="bi bi-x"></i>
                                     </button>
@@ -318,7 +405,7 @@
                         type="button"
                         class="btn btn-outline-secondary"
                         data-bs-toggle="modal"
-                        data-bs-target="#addMovieDirectorsModal"
+                        data-bs-target="#addMovieWritersModal"
                         data-bs-dismiss="modal">
                         Back
                     </button>

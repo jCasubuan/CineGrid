@@ -2,8 +2,18 @@
 <?php
 require_once 'includes/init.php';
 
+function formatDuration($mins) {
+    if (!$mins) return "N/A";
+    $hours = floor($mins / 60);
+    $minutes = $mins % 60;
+    if ($hours > 0) {
+        return $hours . "h " . ($minutes > 0 ? $minutes . "m" : "");
+    }
+    return $minutes . "m";
+}
+
 // Fetch top 4 highest rated active movies
-$featuredQuery = "
+$heroQuery = "
     SELECT m.*, GROUP_CONCAT(g.name SEPARATOR ' • ') as genre_list
     FROM movies m
     LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id
@@ -11,9 +21,23 @@ $featuredQuery = "
     WHERE m.status = 'active'
     GROUP BY m.movie_id
     ORDER BY m.rating DESC
-    LIMIT 4
+    LIMIT 1
 ";
-$featuredResult = $Conn->query($featuredQuery);
+$heroResult = $Conn->query($heroQuery);
+$hero = $heroResult->fetch_assoc();
+
+$popularQuery = "
+    SELECT m.movie_id, m.title, m.poster_path, m.rating, m.release_year, m.duration, 
+           GROUP_CONCAT(g.name SEPARATOR ' • ') as genre_list
+    FROM movies m
+    LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id
+    LEFT JOIN genres g ON mg.genre_id = g.genre_id
+    WHERE m.status = 'active'
+    GROUP BY m.movie_id
+    ORDER BY m.rating DESC
+    LIMIT 4 
+";
+$featuredResult = $Conn->query($popularQuery);
 ?>
 
 <!DOCTYPE html>
@@ -190,10 +214,27 @@ $featuredResult = $Conn->query($featuredQuery);
                                         <i class="bi bi-star-fill text-warning"></i> <?= number_format($movie['rating'], 1); ?>
                                     </span>
 
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1 text-truncate fw-bold"><?= htmlspecialchars($movie['title']); ?></h6>
-                                        <p class="card-text small text-white-50 mb-0">
-                                            <?= htmlspecialchars($movie['genre_list'] ?: 'General'); ?> • <?= $movie['release_year']; ?>
+                                    <div class="card-body p-3">
+                                        <h5 class="card-title mb-2 fw-bold" style="font-size: 1.1rem;">
+                                            <?= htmlspecialchars($movie['title']); ?>
+                                            <span class="ms-1 fw-normal text-white-50" style="font-size: 0.9rem;">
+                                                (<?= $movie['release_year']; ?>)
+                                            </span>
+                                        </h5>
+                                        
+                                        <p class="card-text text-white-50 mb-0" style="font-size: 0.85rem; line-height: 1.4;">
+                                            <span class="text-truncate">
+                                                <?php 
+                                                    $genres = explode(' • ', $movie['genre_list']); 
+                                                    // Changed 2 to 3 here to show more genres
+                                                    $short_genres = implode(' • ', array_slice($genres, 0, 3));
+                                                    echo htmlspecialchars($short_genres ?: 'General'); 
+                                                ?>
+                                            </span>
+                                            <span class="mx-2">•</span>
+                                            <span class="text-nowrap">
+                                                <i class="bi bi-clock me-1"></i><?= formatDuration($movie['duration']); ?>
+                                            </span>
                                         </p>
                                     </div>
                                 </div>

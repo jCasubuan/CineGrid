@@ -1,4 +1,4 @@
-/* ===== CSS codes shared both by movies.php and series.php =====*/
+/* ===== CSS codes shared both by movie-details.php and series-details.php =====*/
 /* Floating Poster */
 .floating-poster {
     margin-top: -150px;
@@ -11,11 +11,11 @@
 
 .rating-circle::before {
     content: '';
-    width: 65px;
-    height: 65px;
+    position: absolute;
+    width: 60px;
+    height: 60px;
     background: #0d0d0d;
     border-radius: 50%;
-    position: absolute;
 }
 
 .rating-value {
@@ -23,7 +23,6 @@
     z-index: 1;
     font-size: 1.5rem;
     font-weight: bold;
-    color: #4caf50;
 }
 
 /* Cast Cards */
@@ -56,13 +55,22 @@
     color: #ffc107;
 }
 
+
 /* Trailer Container */
 .trailer-container {
     position: relative;
-    padding-bottom: 56.25%;
-    height: 0;
+    width: 100%;
+    max-width: 1100px; /* Control the width to control the height */
+    margin: 0 auto; /* Center it */
     overflow: hidden;
     border-radius: 12px;
+}
+
+/* This maintains perfect 16:9 ratio */
+.trailer-container::before {
+    content: "";
+    display: block;
+    padding-top: 56.25%; /* 16:9 ratio (9/16 = 0.5625) */
 }
 
 .trailer-container iframe {
@@ -73,14 +81,33 @@
     height: 100%;
 }
 
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .trailer-container {
+        max-width: 800px; /* Smaller on medium screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .trailer-container {
+        max-width: 100%; /* Full width on tablets */
+    }
+}
+
+@media (max-width: 576px) {
+    .trailer-container {
+        max-width: 100%; /* Full width on phones */
+    }
+}
+
 /* Hero Banner Section */
 .details-hero {
-    height: 60vh;
-    min-height: 400px;
+    height: 40vh;
+    min-height: 550px;
     background-size: cover;
-    background-position: center;
+    background-position: center 35%;
     position: relative;
-    margin-top: 56px;
+    margin-top: 0px;
 }
 
 .details-hero-overlay {
@@ -91,21 +118,22 @@
     bottom: 0;
     background: linear-gradient(
         to top, 
-        rgba(13, 13, 13, 1) 0%, 
-        rgba(13, 13, 13, 0.7) 50%, 
-        rgba(13, 13, 13, 0.3) 100%
+        rgba(13, 13, 13, 1) 0%,     /* Solid black at the very bottom */
+        rgba(13, 13, 13, 0.4) 40%,  /* Fades out faster to show more image */
+        rgba(13, 13, 13, 0) 100%    /* Completely transparent at the top */
     );
 }
 
 /* Rating Circle */
 .rating-circle {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    font-family: sans-serif;
 }
 
 /* ===== specific series.php css only =====*/
@@ -175,4 +203,44 @@
     border-radius: 8px;
     margin: 5px;
     font-size: 0.875rem;
+}
+
+.tag {
+    display: inline-block;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.1); /* Subtle transparent white */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.tag:hover {
+    background: #667eea; /* Your theme color */
+    border-color: #667eea;
+    transform: translateY(-2px);
+}
+
+.form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+}
+
+/* Optional: Remove the default blue glow on click to match your theme */
+.form-select:focus {
+    border-color: #6c757d;
+    box-shadow: none;
+}
+
+.custom-hr {
+    /* Adjust '1px' to '2px' if you want them even thicker */
+    border-top: 1px solid rgba(255, 255, 255, 0.2); 
+    /* Ensures the line isn't see-through */
+    opacity: 1; 
+    margin-left: 0;
+    margin-right: 0;
 }

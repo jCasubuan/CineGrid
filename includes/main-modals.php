@@ -89,7 +89,7 @@
                                 class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-white pe-3" 
                                 id="togglePassword"
                                 style="z-index: 10; border: none; background: none;">
-                                <i class="bi bi-eye" id="toggleIcon"></i>
+                                <i class="bi bi-eye-slash" id="toggleIcon"></i>
                             </button>
                             
                             <div class="invalid-feedback">

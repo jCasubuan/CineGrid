@@ -1,6 +1,121 @@
 <!-- PHP connection -->
 <?php
 require_once 'includes/init.php';
+
+if (!function_exists('formatDuration')) {
+    function formatDuration($minutes) {
+        $hours = floor($minutes / 60);
+        $min = $minutes % 60;
+        return $hours . "h " . $min . "m";
+    }
+}
+
+if (!function_exists('formatNumber')) {
+    function formatNumber($num) {
+        if ($num >= 1000000) {
+            return round($num / 1000000, 1) . 'M';
+        }
+        if ($num >= 1000) {
+            return round($num / 1000, 1) . 'K';
+        }
+        return $num;
+    }
+}
+
+function getYoutubeEmbedUrl($url) {
+    $shortUrlRegex = '/youtu.be\/([a-zA-Z0-9_-]+)\??/i';
+    $longUrlRegex = '/youtube.com\/((?:embed)|(?:watch))((?:\?v\=)|(?:\/))([a-zA-Z0-9_-]+)/i';
+
+    if (preg_match($shortUrlRegex, $url, $matches)) {
+        $youtube_id = $matches[1];
+    } else if (preg_match($longUrlRegex, $url, $matches)) {
+        $youtube_id = $matches[3];
+    } else {
+        return $url; // Fallback
+    }
+    return "https://www.youtube.com/embed/" . $youtube_id;
+}
+
+// Get movie ID from URL (e.g., movie-details.php?id=12)
+$movieId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$movieData = null;
+
+// Fetch movie data if valid ID
+if ($movieId > 0) {
+    $query = "SELECT m.*, 
+              GROUP_CONCAT(DISTINCT g.name SEPARATOR ' • ') as genre_list,
+              GROUP_CONCAT(DISTINCT d.name SEPARATOR ', ') as director_list,
+              GROUP_CONCAT(DISTINCT w.name SEPARATOR ', ') as writer_list,
+              t.youtube_url
+              FROM movies m 
+              LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id 
+              LEFT JOIN genres g ON mg.genre_id = g.genre_id 
+              LEFT JOIN movie_directors md ON m.movie_id = md.movie_id
+              LEFT JOIN directors d ON md.director_id = d.director_id
+              LEFT JOIN movie_writers mw ON m.movie_id = mw.movie_id
+              LEFT JOIN writers w ON mw.writer_id = w.writer_id
+              LEFT JOIN movie_trailers t ON m.movie_id = t.movie_id
+              WHERE m.movie_id = ?
+              GROUP BY m.movie_id";
+    
+    $stmt = $Conn->prepare($query);
+    $stmt->bind_param("i", $movieId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $movieData = $result->fetch_assoc();
+    $stmt->close();
+}
+
+// Redirect if movie not found
+if (!$movieData) {
+    header("Location: index.php");
+    exit;
+}
+
+// dummy data
+$fakeViews = ($movieData['movie_id'] * 12500) + 500000;   
+$fakeRatings = ($movieData['movie_id'] * 5200) + 100000; 
+$fakeReviews = ($movieData['movie_id'] * 150) + 2000;     
+
+// Calculate percentage for the circle
+$rating = isset($movieData['rating']) ? $movieData['rating'] : 0;
+$percentage = $rating * 10;
+
+// Set page title
+$pageTitle = htmlspecialchars($movieData['title']);
+
+// Prepare the backdrop URL
+$backdrop = !empty($movieData['backdrop_path']) 
+            ? $movieData['backdrop_path'] 
+            : 'assets/img/default-backdrop.jpg'; // Fallback image
+
+// 1. Get the Cast (Joining movie_cast and actors)
+// $castQuery = "SELECT a.name, a.image_path, mc.character_name 
+//               FROM movie_cast mc 
+//               JOIN actors a ON mc.actor_id = a.actor_id 
+//               WHERE mc.movie_id = ? 
+//               ORDER BY a.name ASC 
+//               LIMIT 6";
+
+$castQuery = "SELECT a.name, a.image_path, mc.character_name 
+              FROM movie_cast mc 
+              JOIN actors a ON mc.actor_id = a.actor_id 
+              WHERE mc.movie_id = ? 
+              ORDER BY mc.movie_id, a.actor_id ASC 
+              LIMIT 6";
+
+$stmtCast = $Conn->prepare($castQuery); 
+$stmtCast->bind_param("i", $movieData['movie_id']);
+$stmtCast->execute();
+$castResult = $stmtCast->get_result();
+
+// 2. Full Cast URL (using tmdb_id from your movies table)
+$tmdbType = ($movieData['type'] === 'series') ? 'tv' : 'movie';
+
+$fullCastUrl = !empty($movieData['tmdb_id']) 
+    ? "https://www.themoviedb.org/" . $tmdbType . "/" . $movieData['tmdb_id'] . "/cast"
+    : "#";
+
 ?>
 
 <!DOCTYPE html>
@@ -10,7 +125,7 @@ require_once 'includes/init.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Watch and review Movie Title on CineGrid">
-    <title>The Dark Knight (2008) | CineGrid</title>
+    <title><?= $pageTitle; ?> | CineGrid</title>
 
     <!-- Site Icon / Logo -->
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
@@ -41,7 +156,7 @@ require_once 'includes/init.php';
     <?php include 'includes/navbar.php'; ?>
 
     <!-- HERO BANNER -->
-    <section class="details-hero" style="background-image: url('https://via.placeholder.com/1920x1080/1a1a2e/667eea?text=The+Dark+Knight+Banner');">
+    <section class="details-hero" style="background-image: url('<?= $backdrop; ?>');">
         <div class="details-hero-overlay"></div>
     </section>
 
@@ -50,40 +165,44 @@ require_once 'includes/init.php';
         <div class="row">
             <!-- Movie Poster (Floating) -->
             <div class="col-12 col-md-3">
-                <img src="https://via.placeholder.com/300x450/667eea/ffffff?text=The+Dark+Knight" 
+                <img src="<?= htmlspecialchars($movieData['poster_path']); ?>" 
                      class="img-fluid floating-poster" 
-                     alt="The Dark Knight">
+                     alt="<?= htmlspecialchars($movieData['title']); ?>">
             </div>
 
             <!-- Movie Information -->
             <div class="col-12 col-md-9 mt-4 mt-md-0">
                 <!-- Title & Meta -->
                 <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
-                    <h1 class="display-5 fw-bold mb-0">The Dark Knight</h1>
+                    <h1 class="display-5 fw-bold mb-0"><?= htmlspecialchars($movieData['title']); ?></h1>
                     <span class="badge bg-warning text-dark fs-6">PG-13</span>
                 </div>
 
                 <p class="text-white mb-4">
-                    <i class="bi bi-calendar3 me-1"></i> 2008
+                    <i class="bi bi-calendar3 me-1"></i> <?= $movieData['release_year']; ?>
                     <span class="mx-2">•</span>
-                    <i class="bi bi-clock me-1"></i> 2h 32m
+                    <i class="bi bi-clock me-1"></i> <?= formatDuration($movieData['duration']); ?>
                     <span class="mx-2">•</span>
                     <i class="bi bi-translate me-1"></i> English
                 </p>
 
                 <!-- Genres -->
                 <div class="mb-4">
-                    <span class="tag"><i class="bi bi-tag-fill me-1"></i>Action</span>
-                    <span class="tag"><i class="bi bi-tag-fill me-1"></i>Crime</span>
-                    <span class="tag"><i class="bi bi-tag-fill me-1"></i>Drama</span>
-                    <span class="tag"><i class="bi bi-tag-fill me-1"></i>Thriller</span>
+                    <?php 
+                    $genres = explode(' • ', $movieData['genre_list']);
+                    foreach($genres as $genre): 
+                    ?>
+                        <span class="tag me-2 mb-2">
+                            <i class="bi bi-tag-fill me-1"></i><?= htmlspecialchars($genre); ?>
+                        </span>
+                    <?php endforeach; ?>
                 </div>
 
                 <!-- Rating & Actions -->
                 <div class="row g-3 mb-4">
                     <div class="col-auto">
-                        <div class="rating-circle" style="background: conic-gradient(#4caf50 0% 87%, #ddd 87% 100%);">
-                            <span class="rating-value">8.7</span>
+                        <div class="rating-circle" style="background: conic-gradient(#4caf50 0% <?= $percentage ?>%, #333 <?= $percentage ?>% 100%);">
+                            <span class="rating-value"><?= number_format($rating, 1); ?></span>
                         </div>
                         <small class="d-block text-center mt-2 text-white">IMDb Rating</small>
                     </div>
@@ -110,26 +229,28 @@ require_once 'includes/init.php';
                 <div class="d-flex flex-wrap gap-3 mb-4">
                     <div class="stat-badge">
                         <i class="bi bi-eye me-2"></i>
-                        <strong>2.5M</strong> <small class="text-white">Views</small>
+                        <strong><?= formatNumber($fakeViews); ?></strong> 
+                        <small class="text-white-50">Views</small>
                     </div>
+                    
                     <div class="stat-badge">
                         <i class="bi bi-star-fill text-warning me-2"></i>
-                        <strong>1.2M</strong> <small class="text-white">Ratings</small>
+                        <strong><?= formatNumber($fakeRatings); ?></strong> 
+                        <small class="text-white-50">Ratings</small>
                     </div>
+                    
                     <div class="stat-badge">
                         <i class="bi bi-chat-dots me-2"></i>
-                        <strong>45K</strong> <small class="text-white">Reviews</small>
+                        <strong><?= formatNumber($fakeReviews); ?></strong> 
+                        <small class="text-white-50">Reviews</small>
                     </div>
                 </div>
 
                 <!-- Synopsis -->
                 <div class="mb-4">
-                    <h4 class="mb-3"><i class="bi bi-file-text me-2"></i>Synopsis</h4>
-                    <p class="lead">
-                        When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, 
-                        Batman must accept one of the greatest psychological and physical tests of his ability 
-                        to fight injustice. With the help of Lt. Jim Gordon and District Attorney Harvey Dent, 
-                        Batman sets out to dismantle the remaining criminal organizations.
+                    <h4 class="mb-3 text-white"><i class="bi bi-file-text me-2"></i>Synopsis</h4>
+                    <p class="lead text-white">
+                        <?= nl2br(htmlspecialchars($movieData['overview'])); ?>
                     </p>
                 </div>
 
@@ -137,129 +258,86 @@ require_once 'includes/init.php';
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <h5><i class="bi bi-megaphone me-2"></i>Director</h5>
-                        <p>
-                            <a href="https://www.imdb.com/name/nm0634240/" 
-                            class="text-decoration-none" 
-                            target="_blank">Christopher Nolan
-                            </a>
+                        <p class="text-white">
+                            <?= !empty($movieData['director_list']) ? htmlspecialchars($movieData['director_list']) : 'N/A'; ?>
                         </p>
                     </div>
                     <div class="col-md-6">
                         <h5><i class="bi bi-pen me-2"></i>Writers</h5>
-                        <p>
-                            <a href="https://www.imdb.com/name/nm0634240/" 
-                            class="text-decoration-none" 
-                            target="_blank">Christopher Nolan
-                            </a>, 
-                            <a href="https://www.imdb.com/name/nm0634240/" 
-                            class="text-decoration-none" 
-                            target="_blank">Christopher Nolan
-                            </a>
+                        <p class="text-white">
+                            <?= !empty($movieData['writer_list']) ? htmlspecialchars($movieData['writer_list']) : 'N/A'; ?>
                         </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <hr class="my-5">
+        <hr class="custom-hr mt-5 mb-4">
 
         <!-- Cast Section -->
         <section class="mb-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3><i class="bi bi-people-fill me-2"></i>Top Cast</h3>
-                <a href="https://www.imdb.com/title/tt0468569/fullcredits/" class="btn btn-outline-light btn-sm" target="_blank">See Full Cast</a>
+            <div class="d-flex justify-content-between align-items-center mb-5"> 
+                <h3 class="text-white"><i class="bi bi-people-fill me-2"></i>Top Cast</h3>
+                
+                <?php if ($fullCastUrl !== "#"): ?>
+                    <a href="<?= $fullCastUrl ?>" class="btn btn-outline-light btn-sm" target="_blank" rel="noopener noreferrer">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> See Full Cast
+                    </a>
+                <?php endif; ?>
             </div>
 
-            <div class="row row-cols-2 row-cols-md-6 g-3">
-                <!-- Cast Member 1 -->
-                <div class="col">
-                    <div class="cast-card">
-                        <img src="https://via.placeholder.com/150x200/667eea/ffffff?text=Christian+Bale" 
-                             class="cast-avatar" alt="Christian Bale">
-                        <div class="mt-2">
-                            <h6 class="mb-0">Christian Bale</h6>
-                            <small class="text-white">Bruce Wayne</small>
-                        </div>
-                    </div>
-                </div>
+    <div class="row row-cols-2 row-cols-md-6 g-4">
+        <?php 
+        // Reset displayed counter if needed
+        $displayed = 0;
 
-                <!-- Cast Member 2 -->
-                <div class="col">
-                    <div class="cast-card">
-                        <img src="https://via.placeholder.com/150x200/764ba2/ffffff?text=Heath+Ledger" 
-                             class="cast-avatar" alt="Heath Ledger">
-                        <div class="mt-2">
-                            <h6 class="mb-0">Heath Ledger</h6>
-                            <small class="text-white">The Joker</small>
-                        </div>
+        while($actor = $castResult->fetch_assoc()): 
+            $displayed++;
+            
+            // Logic: Use database image if it exists, otherwise use the initials avatar
+            $initialsUrl = "https://ui-avatars.com/api/?name=" . urlencode($actor['name']) . "&background=random&color=fff&size=128";
+            $displayPhoto = !empty($actor['image_path']) ? $actor['image_path'] : $initialsUrl;
+        ?>
+            <div class="col">
+                <div class="cast-card text-center">
+                    <div class="position-relative d-inline-block">
+                        <img src="<?= htmlspecialchars($displayPhoto) ?>" 
+                             class="cast-avatar rounded-circle mb-2" 
+                             alt="<?= htmlspecialchars($actor['name']); ?>"
+                             style="width: 100px; height: 100px; object-fit: cover; border: 2px solid #333; transition: transform 0.3s ease;">
                     </div>
-                </div>
-
-                <!-- Cast Member 3 -->
-                <div class="col">
-                    <div class="cast-card">
-                        <img src="https://via.placeholder.com/150x200/4ecdc4/ffffff?text=Aaron+Eckhart" 
-                             class="cast-avatar" alt="Aaron Eckhart">
-                        <div class="mt-2">
-                            <h6 class="mb-0">Aaron Eckhart</h6>
-                            <small class="text-white">Harvey Dent</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cast Member 4 -->
-                <div class="col">
-                    <div class="cast-card">
-                        <img src="https://via.placeholder.com/150x200/ff6b6b/ffffff?text=Michael+Caine" 
-                             class="cast-avatar" alt="Michael Caine">
-                        <div class="mt-2">
-                            <h6 class="mb-0">Michael Caine</h6>
-                            <small class="text-white">Alfred</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cast Member 5 -->
-                <div class="col">
-                    <div class="cast-card">
-                        <img src="https://via.placeholder.com/150x200/f39c12/ffffff?text=Maggie+Gyllenhaal" 
-                             class="cast-avatar" alt="Maggie Gyllenhaal">
-                        <div class="mt-2">
-                            <h6 class="mb-0">Maggie Gyllenhaal</h6>
-                            <small class="text-white">Rachel Dawes</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cast Member 6 -->
-                <div class="col">
-                    <div class="cast-card">
-                        <img src="https://via.placeholder.com/150x200/9b59b6/ffffff?text=Gary+Oldman" 
-                             class="cast-avatar" alt="Gary Oldman">
-                        <div class="mt-2">
-                            <h6 class="mb-0">Gary Oldman</h6>
-                            <small class="text-white">Jim Gordon</small>
-                        </div>
+                    <div class="mt-2 px-1">
+                        <h6 class="mb-0 text-white text-truncate" title="<?= htmlspecialchars($actor['name']); ?>">
+                            <?= htmlspecialchars($actor['name']); ?>
+                        </h6>
+                        <small class="text-white-50 d-block text-truncate" title="<?= htmlspecialchars($actor['character_name'] ?? 'Role TBA'); ?>">
+                            <?= htmlspecialchars($actor['character_name'] ?? 'Role TBA'); ?>
+                        </small>
                     </div>
                 </div>
             </div>
-        </section>
+        <?php endwhile; ?>
+    </div>
+</section>
 
-        <hr class="my-5">
+        <hr class="custom-hr my-5">
 
         <!-- Trailer Section -->
+        <?php if (!empty($movieData['youtube_url'])): ?>
         <section id="trailer-section" class="mb-5">
             <h3 class="mb-4"><i class="bi bi-play-circle me-2"></i>Official Trailer</h3>
-            <div class="trailer-container">
+            
+            <div class="trailer-container shadow-lg rounded">
                 <iframe 
-                    src="https://www.youtube.com/embed/EXeTwQWrcwY" 
-                    title="The Dark Knight Trailer" 
+                    src="<?= getYoutubeEmbedUrl($movieData['youtube_url']); ?>"
+                    title="<?= htmlspecialchars($movieData['title']); ?> Official Trailer" 
                     frameborder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                     allowfullscreen>
                 </iframe>
             </div>
         </section>
+        <?php endif; ?>
 
         <hr class="my-5">
 
