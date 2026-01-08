@@ -36,6 +36,7 @@ html {
 .media-card {
     transition: all 0.3s ease;
     overflow: hidden;
+    background: #1a1a1a
 }
 
 .media-card:hover {
@@ -353,4 +354,46 @@ html {
 .media-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+/* Keeps the title and year from wrapping weirdly */
+.card-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 5px;
+}
+
+/* Ensure the genre/duration line is clean */
+.card-text.small {
+    font-size: 0.8rem !important;
+    letter-spacing: 0.3px;
+}
+
+/* Add a tiny bit of space around the clock icon */
+.bi-clock {
+    margin-left: 2px;
+    margin-right: 1px;
+}
+
+.media-card .card-body {
+    min-height: 90px; /* Forces the "tile" area to be consistent and taller */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.media-card .bi-clock {
+    font-size: 0.85rem;
+    vertical-align: middle;
+}
+
+.details-hero {
+    margin-top: 0 !important; /* Forces it to the top */
+    padding-top: 0;
+    height: 70vh;
+    background-size: cover;
+    background-position: center center;
+    position: relative;
+    width: 100%;
 }

@@ -98,11 +98,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             console.log('New type:', type); // Debug
             
-            // Toggle icon
-            if (type === 'text') {
+            // Toggle icon logic
+            if (type === 'password') {
+                // It's hidden, so the eye should be slashed (closed)
                 toggleIcon.classList.remove('bi-eye');
                 toggleIcon.classList.add('bi-eye-slash');
             } else {
+                // It's visible, so the eye should be open
                 toggleIcon.classList.remove('bi-eye-slash');
                 toggleIcon.classList.add('bi-eye');
             }
@@ -197,12 +199,15 @@ document.addEventListener('DOMContentLoaded', function() {
             signupPasswordInput.setAttribute('type', type);
             
             // Toggle icon
-            if (type === 'text') {
-                toggleSignupIcon.classList.remove('bi-eye');
-                toggleSignupIcon.classList.add('bi-eye-slash');
+            // Toggle icon logic
+            if (type === 'password') {
+                // It's hidden, so the eye should be slashed (closed)
+                toggleIcon.classList.remove('bi-eye');
+                toggleIcon.classList.add('bi-eye-slash');
             } else {
-                toggleSignupIcon.classList.remove('bi-eye-slash');
-                toggleSignupIcon.classList.add('bi-eye');
+                // It's visible, so the eye should be open
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
             }
             
             // Add visual feedback

@@ -19,24 +19,26 @@ if (empty($_SESSION['movie_draft'])) {
 }
 
 $draft = $_SESSION['movie_draft'];
-
 $Conn->begin_transaction();
 
 try {
 
     /* 1. Insert movie */
     $stmt = $Conn->prepare("
-        INSERT INTO movies (title, overview, release_year, rating, type, tmdb_id, poster_path, backdrop_path)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO movies (title, overview, release_year, duration, rating, type, content_rating, language, tmdb_id, poster_path, backdrop_path)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $stmt->bind_param(
-        'ssidsiss',
+        'ssiidssssss', 
         $draft['basic']['title'],
         $draft['basic']['overview'],
         $draft['basic']['release_year'],
+        $draft['basic']['duration'],
         $draft['basic']['rating'],
         $draft['basic']['type'],
+        $draft['basic']['content_rating'],
+        $draft['basic']['language'],
         $draft['basic']['tmdb_id'],
         $draft['basic']['poster_path'],
         $draft['basic']['backdrop_path']
@@ -100,36 +102,46 @@ try {
         $stmt->execute();
     }
 
+    // for writers
+    if (!empty($draft['writers'])) {
+        foreach ($draft['writers'] as $name) {
+            $stmt = $Conn->prepare("INSERT INTO writers (name) VALUES (?) ON DUPLICATE KEY UPDATE writer_id = LAST_INSERT_ID(writer_id)");
+            $stmt->bind_param('s', $name);
+            $stmt->execute();
+            $writer_id = $Conn->insert_id;
+
+            $stmt = $Conn->prepare("INSERT IGNORE INTO movie_writers (movie_id, writer_id) VALUES (?, ?)");
+            $stmt->bind_param('ii', $movie_id, $writer_id);
+            $stmt->execute();
+        }
+    }
+
     /* 4. Cast */
     foreach ($draft['cast'] as $c) {
-
+        // We update the image path every time we encounter the actor
         $stmt = $Conn->prepare("
-            INSERT INTO actors (name)
-            VALUES (?)
-            ON DUPLICATE KEY UPDATE actor_id = LAST_INSERT_ID(actor_id)
+            INSERT INTO actors (name, image_path)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE 
+                actor_id = LAST_INSERT_ID(actor_id),
+                image_path = VALUES(image_path)
         ");
-        $stmt->bind_param('s', $c['actor']);
+        $stmt->bind_param('ss', $c['actor'], $c['image']);
         $stmt->execute();
-
         $actor_id = $Conn->insert_id;
 
-        $stmt = $Conn->prepare("
-            INSERT INTO movie_cast (movie_id, actor_id, character_name)
-            VALUES (?, ?, ?)
-        ");
+        $stmt = $Conn->prepare("INSERT INTO movie_cast (movie_id, actor_id, character_name) VALUES (?, ?, ?)");
         $stmt->bind_param('iis', $movie_id, $actor_id, $c['character']);
         $stmt->execute();
     }
 
     $Conn->commit();
-
     unset($_SESSION['movie_draft']);
-
     echo json_encode(['status' => 'success']);
 
 } catch (Throwable $e) {
 
-    $Conn->rollback();
+    if ($Conn->connect_errno === 0) { $Conn->rollback(); }
     http_response_code(500);
     echo json_encode(['error' => 'Failed to save movie']);
 }

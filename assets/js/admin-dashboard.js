@@ -121,11 +121,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const formData = new FormData(addMovieForm);
 
-        // Basic validation
+        const durationValue = formData.get('duration');
+        if (!durationValue || durationValue <= 0) {
+            showAlert('Please enter a valid movie duration (minutes).', 'danger');
+            return;
+        }
+
+        // Validation for new fields: Language and Content Rating
+        if (!formData.get('language') || !formData.get('content_rating')) {
+            showAlert('Please select a Language and Content Rating.', 'danger');
+            return;
+        }
+
+        // Basic validation for existing fields
         if (
             !formData.get('title')?.trim() ||
             !formData.get('overview')?.trim() ||
-            !formData.get('release_year')
+            !formData.get('release_year') ||
+            !formData.get('duration')
         ) {
             showAlert('Please fill in all required fields.', 'danger');
             return;
@@ -394,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 directorsModal.hide();
 
                 const castModal = new bootstrap.Modal(
-                    document.getElementById('addMovieCastModal')
+                    document.getElementById('addMovieWritersModal')
                 );
                 castModal.show();
             }, 800);
@@ -403,6 +416,71 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(() => {
             showAlert('Unexpected error occurred.', 'danger');
         });
+    });
+
+    function showAlert(message, type) {
+        alertBox.className = `alert alert-${type}`;
+        alertBox.textContent = message;
+        alertBox.classList.remove('d-none');
+    }
+});
+
+// add writers
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('movieWritersForm');
+    const container = document.getElementById('writersContainer');
+    const alertBox = document.getElementById('writersAlert');
+    const addBtn = document.getElementById('addWriterBtn');
+
+    if (!form) return;
+
+    addBtn.addEventListener('click', () => {
+        const row = document.createElement('div');
+        row.className = 'input-group mb-2 writer-row';
+        row.innerHTML = `
+            <input type="text" name="writers[]" class="form-control bg-dark text-white border-secondary" placeholder="Writer name" required>
+            <button type="button" class="btn btn-outline-danger remove-writer">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+        container.appendChild(row);
+    });
+
+    container.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-writer')) {
+            e.target.closest('.writer-row').remove();
+        }
+    });
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+
+        fetch('admin-actions/save-movie-writers.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                showAlert(data.error, 'danger');
+                return;
+            }
+            showAlert('Writers saved successfully!', 'success');
+
+            setTimeout(() => {
+                const writersModal = bootstrap.Modal.getInstance(
+                    document.getElementById('addMovieWritersModal')
+                );
+                writersModal.hide();
+
+                const castModal = new bootstrap.Modal(
+                    document.getElementById('addMovieCastModal')
+                );
+                castModal.show();
+            }, 800);
+        })
+        .catch(() => showAlert('Unexpected error occurred.', 'danger'));
     });
 
     function showAlert(message, type) {
@@ -423,15 +501,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addBtn.addEventListener('click', () => {
         const row = document.createElement('div');
-        row.className = 'row g-2 mb-2 cast-row';
+        row.className = 'row g-2 mb-2 cast-row border-bottom border-secondary pb-2';
         row.innerHTML = `
-            <div class="col-md-5">
-                <input type="text" name="actors[]" class="form-control" placeholder="Actor name" required>
+            <div class="col-md-4">
+                <input type="text" name="actors[]" class="form-control" placeholder="Actor Name" required>
             </div>
-            <div class="col-md-5">
-                <input type="text" name="characters[]" class="form-control" placeholder="Character name" required>
+            <div class="col-md-4">
+                <input type="text" name="characters[]" class="form-control" placeholder="Character Name" required>
             </div>
-            <div class="col-md-2 d-grid">
+            <div class="col-md-3">
+                <input type="text" name="actor_images[]" class="form-control" placeholder="Actor Image URL">
+            </div>
+            <div class="col-md-1 d-grid">
                 <button type="button" class="btn btn-outline-danger remove-cast">
                     <i class="bi bi-x"></i>
                 </button>
@@ -514,56 +595,93 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDraft(draft) {
         let html = '';
 
-        /* BASIC INFO */
-        html += section('Basic Information', `
-            <div class="row">
-                <div class="col-8">
-                    <strong>Title:</strong> ${escapeHtml(draft.basic.title)}<br>
-                    <strong>Type:</strong> <span class="badge bg-secondary">${draft.basic.type.toUpperCase()}</span><br>
-                    <strong>Rating:</strong> <i class="bi bi-star-fill text-warning"></i> ${draft.basic.rating}/10<br>
-                    <strong>Release Year:</strong> ${draft.basic.release_year}
+        /* 1. VISUAL PREVIEW (Poster & Backdrop) */
+        html += section('Visuals', `
+            <div class="row g-2">
+                <div class="col-md-8">
+                    <small class="text-muted d-block mb-1">Backdrop Preview:</small>
+                    <img src="${draft.basic.backdrop_path || 'assets/img/default-backdrop.jpg'}" 
+                        class="img-fluid rounded border border-secondary" 
+                        style="height: 150px; width: 100%; object-fit: cover;">
                 </div>
-                <div class="col-4 text-end">
-                    <img src="${draft.basic.poster_path}" style="width: 80px; border-radius: 5px;">
+                <div class="col-md-4 text-center">
+                    <small class="text-muted d-block mb-1">Poster:</small>
+                    <img src="${draft.basic.poster_path || 'assets/img/default-poster.jpg'}" 
+                        class="img-thumbnail" 
+                        style="height: 150px; width: 100px; object-fit: cover;">
                 </div>
-            </div>
-            <div class="mt-2">
-                <strong>Overview:</strong>
-                <div class="small text-white">${escapeHtml(draft.basic.overview)}</div>
             </div>
         `);
 
-        /* GENRES */
-        html += section(
-            'Genres',
-            draft.genres && draft.genres.length
-                ? draft.genres.map(g => `<span class="badge bg-primary me-1">${escapeHtml(g)}</span>`).join(' ')
-                : '<em>No genres selected</em>'
-        );
+        /* 2. BASIC INFORMATION */
+        html += section('Basic Information', `
+            <div class="row">
+                <div class="col-12">
+                    <h4 class="text-primary mb-1">${escapeHtml(draft.basic.title)}</h4>
+                    <div class="mb-2">
+                        <span class="badge bg-info text-dark">${draft.basic.type.toUpperCase()}</span>
+                        <span class="badge bg-warning text-dark">${draft.basic.content_rating}</span>
+                        <span class="badge bg-secondary">${draft.basic.language}</span>
+                        <span class="badge bg-dark border border-secondary">TMDB ID: ${draft.basic.tmdb_id || 'N/A'}</span>
+                    </div>
+                    <p class="mb-1"><strong>Year:</strong> ${draft.basic.release_year} | <strong>Duration:</strong> ${draft.basic.duration} mins</p>
+                    <p class="mb-2"><strong>Rating:</strong> <i class="bi bi-star-fill text-warning"></i> ${draft.basic.rating}/10</p>
+                    
+                    <div class="p-2 bg-dark rounded border border-secondary mb-2">
+                        <strong>Genres:</strong> 
+                        <span class="text-info">${draft.genres.length > 0 ? draft.genres.join(' • ') : 'No genres selected'}</span>
+                    </div>
 
-        /* TRAILER */
-        html += section('Trailer', draft.trailer.url
-            ? `<a href="${draft.trailer.url}" target="_blank">${draft.trailer.url}</a>`
-            : '<em>No trailer</em>'
-        );
+                    <div class="p-2 bg-secondary bg-opacity-10 rounded">
+                        <strong>Overview:</strong><br>
+                        <small class="text-white-50">${escapeHtml(draft.basic.overview)}</small>
+                    </div>
+                </div>
+            </div>
+        `);
 
-        /* DIRECTORS */
-        html += section(
-            'Directors',
-            draft.directors.length
-                ? `<ul>${draft.directors.map(d => `<li>${escapeHtml(d)}</li>`).join('')}</ul>`
-                : '<em>No directors</em>'
-        );
+        /* 3. CREW (Directors & Writers) */
+        html += section('Crew', `
+            <div class="row">
+                <div class="col-md-6">
+                    <strong class="text-white">Directors:</strong>
+                    <p class="small text-info">${draft.directors.length > 0 ? draft.directors.join(', ') : 'None'}</p>
+                </div>
+                <div class="col-md-6">
+                    <strong class="text-white">Writers:</strong>
+                    <p class="small text-info">${draft.writers.length > 0 ? draft.writers.join(', ') : 'None'}</p>
+                </div>
+            </div>
+        `);
 
-        /* CAST */
-        html += section(
-            'Cast',
-            draft.cast.length
-                ? `<ul>${draft.cast.map(c =>
-                    `<li>${escapeHtml(c.actor)} as <em>${escapeHtml(c.character)}</em></li>`
-                  ).join('')}</ul>`
-                : '<em>No cast</em>'
-        );
+        /* 4. CAST */
+        html += section('Cast', `
+            <div class="row row-cols-2 row-cols-md-4 g-2">
+                ${draft.cast.map(c => `
+                    <div class="col">
+                        <div class="d-flex align-items-center p-1 bg-dark rounded border border-secondary">
+                            <img src="${c.image || 'assets/img/default-actor.jpg'}" 
+                                class="rounded-circle me-2" 
+                                style="width: 35px; height: 35px; object-fit: cover; border: 1px solid #444;">
+                            <div style="font-size: 0.7rem;" class="text-truncate">
+                                <div class="fw-bold text-white">${escapeHtml(c.actor)}</div>
+                                <div class="text-muted">${escapeHtml(c.character)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `);
+
+        /* 5. TRAILER */
+        if (draft.trailer && draft.trailer.url) {
+            html += section('Trailer', `
+                <div class="p-2 bg-dark rounded border border-primary">
+                    <i class="bi bi-youtube text-danger me-2"></i>
+                    <small class="text-white-50">${escapeHtml(draft.trailer.url)}</small>
+                </div>
+            `);
+        }
 
         reviewContent.innerHTML = html;
     }
