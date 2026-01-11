@@ -2,20 +2,32 @@
 require_once '../includes/init.php';
 header('Content-Type: application/json');
 
-$id = (int)$_GET['id'];
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-// Get current state
+if ($id <= 0) {
+    echo json_encode(['status' => 'error', 'error' => 'Invalid Movie ID']);
+    exit;
+}
+
 $res = $Conn->query("SELECT is_featured FROM movies WHERE movie_id = $id");
-$current = $res->fetch_assoc()['is_featured'];
 
-// Flip it (0 to 1 or 1 to 0)
-$newState = $current ? 0 : 1;
+if ($res && $res->num_rows > 0) {
+    $row = $res->fetch_assoc();
+    $current = $row['is_featured'];
 
-$stmt = $Conn->prepare("UPDATE movies SET is_featured = ? WHERE movie_id = ?");
-$stmt->bind_param('ii', $newState, $id);
+    $newState = $current ? 0 : 1;
 
-if ($stmt->execute()) {
-    echo json_encode(['status' => 'success', 'new_state' => $newState]);
+    $stmt = $Conn->prepare("UPDATE movies SET is_featured = ? WHERE movie_id = ?");
+    $stmt->bind_param('ii', $newState, $id);
+
+    if ($stmt->execute()) {
+        echo json_encode([
+            'status' => 'success', 
+            'new_state' => $newState
+        ]);
+    } else {
+        echo json_encode(['status' => 'error', 'error' => 'Database update failed']);
+    }
 } else {
-    echo json_encode(['status' => 'error']);
+    echo json_encode(['status' => 'error', 'error' => 'Movie not found']);
 }

@@ -309,3 +309,131 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+/* ===================================
+   GLOBAL SEARCH FUNCTIONALITY
+   =================================== */
+
+document.addEventListener('DOMContentLoaded', function() {
+    let searchTimeout;
+    const searchInput = document.getElementById('globalSearchInput');
+    const searchResults = document.getElementById('searchResults');
+    const searchLoading = document.getElementById('searchLoading');
+    const noResults = document.getElementById('noResults');
+    const searchInitialState = document.getElementById('searchInitialState');
+    const searchModal = document.getElementById('searchModal');
+
+    // Check if search elements exist
+    if (!searchInput) return;
+
+    // Focus input when modal opens
+    if (searchModal) {
+        searchModal.addEventListener('shown.bs.modal', function () {
+            searchInput.focus();
+            searchInput.value = ''; // Clear previous search
+            searchResults.innerHTML = '';
+            searchLoading.classList.add('d-none');
+            noResults.classList.add('d-none');
+            searchInitialState.classList.remove('d-none');
+        });
+    }
+
+    // Search as user types
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        // Clear previous timeout
+        clearTimeout(searchTimeout);
+        
+        // Hide all states
+        searchResults.innerHTML = '';
+        searchLoading.classList.add('d-none');
+        noResults.classList.add('d-none');
+        searchInitialState.classList.add('d-none');
+        
+        if (query.length === 0) {
+            searchInitialState.classList.remove('d-none');
+            return;
+        }
+        
+        if (query.length < 2) {
+            return;
+        }
+        
+        // Show loading
+        searchLoading.classList.remove('d-none');
+        
+        // Debounce search request
+        searchTimeout = setTimeout(function() {
+            performSearch(query);
+        }, 500);
+    });
+
+    function performSearch(query) {
+        fetch(`search-handler.php?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                searchLoading.classList.add('d-none');
+                
+                if (data.results && data.results.length > 0) {
+                    displaySearchResults(data.results);
+                } else {
+                    noResults.classList.remove('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                searchLoading.classList.add('d-none');
+                noResults.classList.remove('d-none');
+            });
+    }
+
+    function displaySearchResults(results) {
+        searchResults.innerHTML = results.map(item => {
+            const posterUrl = item.poster_path || 'assets/img/no-poster.jpg';
+            const detailsUrl = item.type === 'movie' ? `movie-details.php?id=${item.movie_id}` : `series-details.php?id=${item.series_id}`;
+            
+            return `
+                <a href="${detailsUrl}" class="search-result-item text-decoration-none">
+                    <img src="${posterUrl}" alt="${escapeHtml(item.title)}" class="search-result-poster" onerror="this.src='assets/img/no-poster.jpg'">
+                    <div class="search-result-info">
+                        <div class="search-result-title">${escapeHtml(item.title)}</div>
+                        <div class="search-result-meta">
+                            <span>${item.release_year || 'N/A'}</span>
+                            ${item.genres ? ` • ${escapeHtml(item.genres)}` : ''}
+                        </div>
+                    </div>
+                    <div class="search-result-rating">
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <span>${item.rating ? parseFloat(item.rating).toFixed(1) : 'N/A'}</span>
+                    </div>
+                </a>
+            `;
+        }).join('');
+    }
+
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+});
+
+// Start carousel immediately on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const carouselEl = document.getElementById('featuredSlider');
+    if (carouselEl) {
+        var carousel = new bootstrap.Carousel(carouselEl, {
+            interval: 4000,
+            ride: 'carousel',
+            pause: 'hover'
+        });
+        carousel.cycle();
+    }
+});

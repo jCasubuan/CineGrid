@@ -1,7 +1,6 @@
 <?php
 require_once '../includes/init.php';
 
-// 1. Security Check: Ensure user is logged in and is an admin
 if (
     empty($_SESSION['user_id']) ||
     $_SESSION['user_role'] !== 'admin'
@@ -10,7 +9,6 @@ if (
     exit;
 }
 
-// 2. Method Check: Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     exit;
@@ -18,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 header('Content-Type: application/json');
 
-// 3. Draft State Check: Ensure the previous steps were completed
 if (empty($_SESSION['movie_draft'])) {
     http_response_code(409);
     echo json_encode(['error' => 'No active movie draft']);

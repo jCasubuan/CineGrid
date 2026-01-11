@@ -1,611 +1,423 @@
-// Section Navigation
-const menuLinks = document.querySelectorAll('.sidebar-menu-link');
-const sections = document.querySelectorAll('.content-section');
+// ========================================
+// 1. SECTION NAVIGATION (Unified Approach)
+// ========================================
+class SectionManager {
+    constructor() {
+        this.sections = document.querySelectorAll('.content-section');
+        this.links = document.querySelectorAll('.sidebar-menu-link');
+        this.init();
+    }
 
-menuLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
-        const sectionName = link.getAttribute('data-section');
-        if (!sectionName) return;
+    init() {
+        // Handle sidebar clicks
+        this.links.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const sectionName = link.getAttribute('data-section');
+                
+                // Only prevent default if this is a section link (not an external link)
+                if (sectionName) {
+                    e.preventDefault();
+                    this.showSection(sectionName + 'Section');
+                }
+                // If no data-section attribute, let the link work normally
+            });
+        });
 
-        e.preventDefault();
+        // Handle URL parameters on page load
+        const urlParams = new URLSearchParams(window.location.search);
+        const section = urlParams.get('section');
+        
+        if (section) {
+            this.showSection(section + 'Section');
+        } else {
+            this.showSection('dashboardSection'); // Default
+        }
+    }
 
-        // Update active link
-        menuLinks.forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
 
-        // Show selected section
-        sections.forEach(section => {
+    showSection(sectionId) {
+        // Hide all sections
+        this.sections.forEach(section => {
             section.style.display = 'none';
         });
-        document.getElementById(sectionName + 'Section').style.display = 'block';
-    });
-});
 
-// mobile Toggle
-const mobileToggle = document.getElementById('mobileToggle');
-const sidebar = document.getElementById('sidebar');
-
-mobileToggle?.addEventListener('click', () => {
-    sidebar.classList.toggle('show');
-});
-
-// Close sidebar when clicking outside (mobile)
-document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 768 &&
-        !sidebar.contains(e.target) &&
-        !mobileToggle.contains(e.target) &&
-        sidebar.classList.contains('show')) {
-        sidebar.classList.remove('show');
-    }
-});
-
-// Search Functionality
-function setupSearch(inputId, tableBodyId) {
-    const searchInput = document.getElementById(inputId);
-    const tableBody = document.getElementById(tableBodyId) || document.querySelector(`#${inputId.replace('Search', 'Section')} tbody`);
-
-    if (!searchInput || !tableBody) return;
-
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const rows = tableBody.querySelectorAll('tr');
-
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchTerm) ? '' : 'none';
-        });
-    });
-}
-
-setupSearch('movieSearch', 'moviesTableBody');
-setupSearch('seriesSearch');
-setupSearch('userSearch');
-setupSearch('reviewSearch');
-
-// CRUD Functions
-function viewMovie(id) {
-    alert(`Viewing movie with ID: ${id}\nThis would open a detailed view or redirect to movie-details.html`);
-}
-
-function deleteMovie(id) {
-    if (confirm(`Are you sure you want to delete this movie?`)) {
-        alert(`Movie ${id} deleted!\nIn production, this would make an API call to delete the movie.`);
-        // Reload table or remove row
-    }
-}
-
-function viewSeries(id) {
-    alert(`Viewing series with ID: ${id}`);
-}
-
-function deleteSeries(id) {
-    if (confirm(`Are you sure you want to delete this series?`)) {
-        alert(`Series ${id} deleted!`);
-    }
-}
-
-function viewUser(id) {
-    alert(`Viewing user with ID: ${id}`);
-}
-
-function deleteUser(id) {
-    if (confirm(`Are you sure you want to delete this user?`)) {
-        alert(`User ${id} deleted!`);
-    }
-}
-
-function viewReview(id) {
-    alert(`Viewing review with ID: ${id}`);
-}
-
-function deleteReview(id) {
-    if (confirm(`Are you sure you want to delete this review?`)) {
-        alert(`Review ${id} deleted!`);
-    }
-}
-
-// Form Submissions
-// add movie (STEP 1)
-document.addEventListener('DOMContentLoaded', function () {
-    const addMovieForm = document.getElementById('addMovieForm');
-    const addMovieBtn = document.getElementById('addMovieBtn');
-    const addMovieSpinner = document.getElementById('addMovieSpinner');
-    const addMovieBtnText = document.getElementById('addMovieBtnText');
-    const addMovieAlert = document.getElementById('addMovieAlert');
-    const addMovieAlertMessage = document.getElementById('addMovieAlertMessage');
-
-    if (!addMovieForm) return;
-
-    addMovieForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const formData = new FormData(addMovieForm);
-
-        const durationValue = formData.get('duration');
-        if (!durationValue || durationValue <= 0) {
-            showAlert('Please enter a valid movie duration (minutes).', 'danger');
-            return;
+        // Show target section
+        const target = document.getElementById(sectionId);
+        if (target) {
+            target.style.display = 'block';
         }
 
-        // Validation for new fields: Language and Content Rating
-        if (!formData.get('language') || !formData.get('content_rating')) {
-            showAlert('Please select a Language and Content Rating.', 'danger');
-            return;
-        }
-
-        // Basic validation for existing fields
-        if (
-            !formData.get('title')?.trim() ||
-            !formData.get('overview')?.trim() ||
-            !formData.get('release_year') ||
-            !formData.get('duration')
-        ) {
-            showAlert('Please fill in all required fields.', 'danger');
-            return;
-        }
-
-        // Loading state
-        addMovieBtn.disabled = true;
-        addMovieSpinner.classList.remove('d-none');
-        addMovieBtnText.textContent = 'Saving...';
-
-        fetch('admin-actions/save-movie-basic.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) {
-                showAlert(data.error, 'danger');
-                resetBtn();
-                return;
+        // Update active link state
+        this.links.forEach(link => {
+            link.classList.remove('active');
+            const linkSection = link.getAttribute('data-section');
+            if (linkSection && sectionId === linkSection + 'Section') {
+                link.classList.add('active');
             }
-
-            // STEP 1 SUCCESS → move to STEP 2
-            bootstrap.Modal.getInstance(
-                document.getElementById('addMovieModal')
-            ).hide();
-
-            new bootstrap.Modal(
-                document.getElementById('addMovieGenresModal')
-            ).show();
-
-            addMovieForm.reset();
-            resetBtn();
-        })
-        .catch(() => {
-            showAlert('Unexpected error occurred.', 'danger');
-            resetBtn();
         });
-    });
-
-    function showAlert(message, type) {
-        addMovieAlert.className = `alert alert-${type} alert-dismissible fade show`;
-        addMovieAlertMessage.textContent = message;
     }
+}
 
-    function resetBtn() {
-        addMovieBtn.disabled = false;
-        addMovieSpinner.classList.add('d-none');
-        addMovieBtnText.textContent = 'Add Movie';
-    }
-});
-
-// edit movie
-document.getElementById('editMovieForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    alert('Movie updated successfully!');
-    bootstrap.Modal.getInstance(document.getElementById('editMovieModal')).hide();
-});
-
-// add series
-document.getElementById('addSeriesForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    alert('Series added successfully!');
-    bootstrap.Modal.getInstance(document.getElementById('addSeriesModal')).hide();
-    e.target.reset();
-});
-
-// edit series
-document.getElementById('editSeriesForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    alert('Series updated successfully!');
-    bootstrap.Modal.getInstance(document.getElementById('editSeriesModal')).hide();
-});
-
-// add users
-document.getElementById('addUserForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    alert('User added successfully!');
-    bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
-    e.target.reset();
-});
-
-// edit users
-document.getElementById('editUserForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    alert('User updated successfully!');
-    bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
-});
-
-// Filter Functions
-document.getElementById('movieGenreFilter')?.addEventListener('change', (e) => {
-    console.log('Filtering by genre:', e.target.value);
-    // Implement filter logic here
-});
-
-document.getElementById('movieYearFilter')?.addEventListener('change', (e) => {
-    console.log('Filtering by year:', e.target.value);
-    // Implement filter logic here
-});
-
-// Initialize tooltips (if using Bootstrap tooltips)
-const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl);
-});
-
-// add genres
-document.addEventListener('DOMContentLoaded', () => {
-    const genreForm = document.getElementById('movieGenresForm');
-    const genreAlert = document.createElement('div'); // Creating alert dynamically if not in HTML
-    genreAlert.id = 'genreAlert';
-    
-    if (!genreForm) return;
-
-    // Inject alert at top of form if it doesn't exist
-    genreForm.prepend(genreAlert);
-    genreAlert.className = 'alert d-none';
-
-    genreForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(genreForm);
+// ========================================
+// 2. MOBILE SIDEBAR
+// ========================================
+class MobileSidebar {
+    constructor() {
+        this.toggle = document.getElementById('mobileToggle');
+        this.sidebar = document.getElementById('sidebar');
         
-        // Validation: Check if at least one genre is selected
-        if (!formData.has('genres[]')) {
-            showGenreAlert('Please select at least one genre.', 'danger');
-            return;
+        if (this.toggle && this.sidebar) {
+            this.init();
         }
+    }
 
-        fetch('admin-actions/save-movie-genres.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) {
-                showGenreAlert(data.error, 'danger');
-                return;
-            }
-
-            showGenreAlert('Genres saved successfully.', 'success');
-
-            setTimeout(() => {
-                const modal = bootstrap.Modal.getInstance(
-                    document.getElementById('addMovieGenresModal')
-                );
-                modal.hide();
-
-                // Move to Trailer Modal
-                new bootstrap.Modal(
-                    document.getElementById('addMovieTrailerModal')
-                ).show();
-
-            }, 800);
-        })
-        .catch(() => {
-            showGenreAlert('Unexpected error occurred.', 'danger');
+    init() {
+        // Toggle button
+        this.toggle.addEventListener('click', () => {
+            this.sidebar.classList.toggle('show');
         });
-    });
 
-    function showGenreAlert(message, type) {
-        genreAlert.className = `alert alert-${type}`;
-        genreAlert.textContent = message;
-        genreAlert.classList.remove('d-none');
-    }
-});
-
-// add trailer
-document.addEventListener('DOMContentLoaded', () => {
-    const trailerForm = document.getElementById('movieTrailerForm');
-    const trailerAlert = document.getElementById('trailerAlert');
-
-    if (!trailerForm) return;
-
-    trailerForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(trailerForm);
-
-        fetch('admin-actions/save-movie-trailer.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) {
-                showTrailerAlert(data.error, 'danger');
-                return;
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 &&
+                !this.sidebar.contains(e.target) &&
+                !this.toggle.contains(e.target) &&
+                this.sidebar.classList.contains('show')) {
+                this.sidebar.classList.remove('show');
             }
-
-            showTrailerAlert('Trailer saved successfully.', 'success');
-
-            setTimeout(() => {
-                const modal = bootstrap.Modal.getInstance(
-                    document.getElementById('addMovieTrailerModal')
-                );
-                modal.hide();
-
-                new bootstrap.Modal(
-                    document.getElementById('addMovieDirectorsModal')
-                ).show();
-
-            }, 800);
-        })
-        .catch(() => {
-            showTrailerAlert('Unexpected error occurred.', 'danger');
         });
-    });
-
-    function showTrailerAlert(message, type) {
-        trailerAlert.className = `alert alert-${type}`;
-        trailerAlert.textContent = message;
-        trailerAlert.classList.remove('d-none');
     }
-});
+}
 
-// add directors
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('movieDirectorsForm');
-    const container = document.getElementById('directorsContainer');
-    const alertBox = document.getElementById('directorsAlert');
-    const addBtn = document.getElementById('addDirectorBtn');
+// ========================================
+// 3. SEARCH FUNCTIONALITY
+// ========================================
+class SearchManager {
+    constructor(config) {
+        this.searches = config;
+        this.init();
+    }
 
-    if (!form) return;
+    init() {
+        this.searches.forEach(({ inputId, tableBodyId }) => {
+            const input = document.getElementById(inputId);
+            const tableBody = document.getElementById(tableBodyId);
 
-    addBtn.addEventListener('click', () => {
-        const row = document.createElement('div');
-        row.className = 'input-group mb-2 director-row';
-        row.innerHTML = `
-            <input type="text" name="directors[]" class="form-control" placeholder="Director name" required>
-            <button type="button" class="btn btn-outline-danger remove-director">
-                <i class="bi bi-x"></i>
-            </button>
-        `;
-        container.appendChild(row);
-    });
-
-    container.addEventListener('click', (e) => {
-        if (e.target.closest('.remove-director')) {
-            e.target.closest('.director-row').remove();
-        }
-    });
-
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(form);
-
-        fetch('admin-actions/save-movie-directors.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) {
-                showAlert(data.error, 'danger');
+            if (!input || !tableBody) {
+                console.warn(`Search setup failed: ${inputId} or ${tableBodyId} not found`);
                 return;
             }
 
-            showAlert('Directors saved successfully.', 'success');
+            input.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = tableBody.querySelectorAll('tr');
 
-            setTimeout(() => {
-                const directorsModal = bootstrap.Modal.getInstance(
-                    document.getElementById('addMovieDirectorsModal')
-                );
-                directorsModal.hide();
-
-                const castModal = new bootstrap.Modal(
-                    document.getElementById('addMovieWritersModal')
-                );
-                castModal.show();
-            }, 800);
-
-        })
-        .catch(() => {
-            showAlert('Unexpected error occurred.', 'danger');
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
         });
-    });
-
-    function showAlert(message, type) {
-        alertBox.className = `alert alert-${type}`;
-        alertBox.textContent = message;
-        alertBox.classList.remove('d-none');
     }
-});
+}
 
-// add writers
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('movieWritersForm');
-    const container = document.getElementById('writersContainer');
-    const alertBox = document.getElementById('writersAlert');
-    const addBtn = document.getElementById('addWriterBtn');
+// ========================================
+// 4. CRUD OPERATIONS
+// ========================================
+const CrudOperations = {
+    viewMovie(id) {
+        alert(`Viewing movie with ID: ${id}\nThis would open a detailed view or redirect to movie-details.html`);
+    },
 
-    if (!form) return;
-
-    addBtn.addEventListener('click', () => {
-        const row = document.createElement('div');
-        row.className = 'input-group mb-2 writer-row';
-        row.innerHTML = `
-            <input type="text" name="writers[]" class="form-control bg-dark text-white border-secondary" placeholder="Writer name" required>
-            <button type="button" class="btn btn-outline-danger remove-writer">
-                <i class="bi bi-x"></i>
-            </button>
-        `;
-        container.appendChild(row);
-    });
-
-    container.addEventListener('click', (e) => {
-        if (e.target.closest('.remove-writer')) {
-            e.target.closest('.writer-row').remove();
+    deleteMovie(id) {
+        if (confirm('Are you sure you want to delete this movie?')) {
+            alert(`Movie ${id} deleted!\nIn production, this would make an API call to delete the movie.`);
         }
-    });
+    },
 
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
+    viewSeries(id) {
+        alert(`Viewing series with ID: ${id}`);
+    },
 
-        fetch('admin-actions/save-movie-writers.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) {
-                showAlert(data.error, 'danger');
-                return;
+    deleteSeries(id) {
+        if (confirm('Are you sure you want to delete this series?')) {
+            alert(`Series ${id} deleted!`);
+        }
+    },
+
+    viewUser(id) {
+        alert(`Viewing user with ID: ${id}`);
+    },
+
+    deleteUser(id) {
+        if (confirm('Are you sure you want to delete this user?')) {
+            alert(`User ${id} deleted!`);
+        }
+    },
+
+    viewReview(id) {
+        alert(`Viewing review with ID: ${id}`);
+    },
+
+    deleteReview(id) {
+        if (confirm('Are you sure you want to delete this review?')) {
+            alert(`Review ${id} deleted!`);
+        }
+    }
+};
+
+// Make CRUD functions globally accessible
+window.viewMovie = CrudOperations.viewMovie;
+window.deleteMovie = CrudOperations.deleteMovie;
+window.viewSeries = CrudOperations.viewSeries;
+window.deleteSeries = CrudOperations.deleteSeries;
+window.viewUser = CrudOperations.viewUser;
+window.deleteUser = CrudOperations.deleteUser;
+window.viewReview = CrudOperations.viewReview;
+window.deleteReview = CrudOperations.deleteReview;
+
+// ========================================
+// 5. FEATURED TOGGLE (No Page Reload)
+// ========================================
+async function toggleFeatured(movieId) {
+    try {
+        // Send POST request to the backend script
+        const res = await fetch(`admin-actions/toggle-featured.php?id=${movieId}`, { 
+            method: 'POST' 
+        });
+        
+        if (!res.ok) throw new Error('Server error');
+        
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            // 1. Target the button using the movieId
+            const btn = document.querySelector(`[onclick="toggleFeatured(${movieId})"]`);
+            
+            if (btn) {
+                const icon = btn.querySelector('i');
+                
+                if (data.new_state) {
+                    // 2. Change to Featured State (Yellow + Filled Lightning)
+                    btn.classList.remove('btn-outline-secondary');
+                    btn.classList.add('btn-warning');
+                    
+                    icon.classList.remove('bi-lightning');
+                    icon.classList.add('bi-lightning-fill');
+                } else {
+                    // 3. Change to Normal State (Gray + Outline Lightning)
+                    btn.classList.remove('btn-warning');
+                    btn.classList.add('btn-outline-secondary');
+                    
+                    icon.classList.remove('bi-lightning-fill');
+                    icon.classList.add('bi-lightning');
+                }
             }
-            showAlert('Writers saved successfully!', 'success');
 
-            setTimeout(() => {
-                const writersModal = bootstrap.Modal.getInstance(
-                    document.getElementById('addMovieWritersModal')
-                );
-                writersModal.hide();
-
-                const castModal = new bootstrap.Modal(
-                    document.getElementById('addMovieCastModal')
-                );
-                castModal.show();
-            }, 800);
-        })
-        .catch(() => showAlert('Unexpected error occurred.', 'danger'));
-    });
-
-    function showAlert(message, type) {
-        alertBox.className = `alert alert-${type}`;
-        alertBox.textContent = message;
-        alertBox.classList.remove('d-none');
+            // 4. Show toast notification using SweetAlert
+            const msg = data.new_state ? 'Added to Hero Banner' : 'Removed from Hero Banner';
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: msg,
+                showConfirmButton: false,
+                timer: 2000
+            });
+        } else {
+            throw new Error(data.error || 'Failed to toggle featured status');
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
     }
-});
+}
 
-// add cast
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('movieCastForm');
-    const container = document.getElementById('castContainer');
-    const alertBox = document.getElementById('castAlert');
-    const addBtn = document.getElementById('addCastBtn');
+// Make it globally accessible
+window.toggleFeatured = toggleFeatured;
 
-    if (!form) return;
-
-    addBtn.addEventListener('click', () => {
-        const row = document.createElement('div');
-        row.className = 'row g-2 mb-2 cast-row border-bottom border-secondary pb-2';
-        row.innerHTML = `
-            <div class="col-md-4">
-                <input type="text" name="actors[]" class="form-control" placeholder="Actor Name" required>
-            </div>
-            <div class="col-md-4">
-                <input type="text" name="characters[]" class="form-control" placeholder="Character Name" required>
-            </div>
-            <div class="col-md-3">
-                <input type="text" name="actor_images[]" class="form-control" placeholder="Actor Image URL">
-            </div>
-            <div class="col-md-1 d-grid">
-                <button type="button" class="btn btn-outline-danger remove-cast">
-                    <i class="bi bi-x"></i>
-                </button>
-            </div>
-        `;
-        container.appendChild(row);
-    });
-
-    container.addEventListener('click', (e) => {
-        if (e.target.closest('.remove-cast')) {
-            e.target.closest('.cast-row').remove();
-        }
-    });
-
-    form.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const formData = new FormData(form);
-
-    fetch('admin-actions/save-movie-cast.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.error) {
-            showAlert(data.error, 'danger');
-            return;
-        }
-
-        if (data.status === 'ok') {
-            // Close Cast modal
-            const castModal = bootstrap.Modal.getInstance(
-                document.getElementById('addMovieCastModal')
-            );
-            castModal.hide();
-
-            // Open Review modal
-            const reviewModal = new bootstrap.Modal(
-                document.getElementById('reviewMovieDraftModal')
-            );
-            reviewModal.show();
-        }
-    })
-    .catch(() => {
-        showAlert('Unexpected error occurred.', 'danger');
-    });
-});
-
-    function showAlert(message, type) {
-        alertBox.className = `alert alert-${type}`;
-        alertBox.textContent = message;
-        alertBox.classList.remove('d-none');
+// ========================================
+// 6. MULTI-STEP MODAL HANDLER (Improved)
+// ========================================
+class MultiStepModalHandler {
+    constructor(steps) {
+        this.steps = steps;
+        this.init();
     }
-});
 
-// movie draft
-document.addEventListener('DOMContentLoaded', () => {
-    const reviewModal = document.getElementById('reviewMovieDraftModal');
-    const reviewContent = document.getElementById('reviewContent');
-    const reviewAlert = document.getElementById('reviewAlert');
+    init() {
+        this.steps.forEach(({ formId, currentModalId, nextModalId }) => {
+            this.setupStep(formId, currentModalId, nextModalId);
+        });
+    }
 
-    if (!reviewModal) return;
+    setupStep(formId, currentModalId, nextModalId) {
+        const form = document.getElementById(formId);
+        if (!form) return;
 
-    reviewModal.addEventListener('show.bs.modal', () => {
-        fetch('admin-actions/get-movie-draft.php')
-            .then(res => res.json())
-            .then(data => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = form.querySelector('[type="submit"]');
+            const originalBtnText = submitBtn?.innerHTML || '';
+            
+            // Disable button and show loading
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+            }
+
+            try {
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form)
+                });
+
+                if (!res.ok) throw new Error('Server error');
+                
+                const data = await res.json();
+
+                if (data.status === 'ok') {
+                    // Show success state
+                    if (submitBtn) {
+                        submitBtn.classList.replace('btn-primary', 'btn-success');
+                        submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Saved!';
+                    }
+
+                    // Wait briefly, then transition to next modal
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    
+                    const currentModal = bootstrap.Modal.getInstance(document.getElementById(currentModalId));
+                    const nextModal = new bootstrap.Modal(document.getElementById(nextModalId));
+                    
+                    currentModal.hide();
+                    nextModal.show();
+                    
+                    // Reset button
+                    if (submitBtn) {
+                        submitBtn.classList.replace('btn-success', 'btn-primary');
+                        submitBtn.innerHTML = originalBtnText;
+                    }
+                } else {
+                    throw new Error(data.error || 'Validation failed. Check your inputs.');
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            }
+        });
+    }
+}
+
+// ========================================
+// 7. DYNAMIC LIST MANAGER
+// ========================================
+class DynamicListManager {
+    constructor(config) {
+        this.lists = config;
+        this.init();
+    }
+
+    init() {
+        this.lists.forEach(({ btnId, containerId, rowClass, template }) => {
+            this.setupList(btnId, containerId, rowClass, template);
+        });
+    }
+
+    setupList(btnId, containerId, rowClass, template) {
+        const btn = document.getElementById(btnId);
+        const container = document.getElementById(containerId);
+
+        if (!btn || !container) return;
+
+        // Add row
+        btn.addEventListener('click', () => {
+            const div = document.createElement('div');
+            div.innerHTML = template;
+            container.appendChild(div.firstElementChild);
+        });
+
+        // Remove row (event delegation)
+        container.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.btn-outline-danger');
+            if (removeBtn) {
+                const rows = container.querySelectorAll(`.${rowClass}`);
+                if (rows.length > 1) {
+                    removeBtn.closest(`.${rowClass}`).remove();
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Cannot Remove',
+                        text: 'At least one entry is required.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            }
+        });
+    }
+}
+
+// ========================================
+// 8. DRAFT REVIEW MODAL
+// ========================================
+class DraftReviewModal {
+    constructor() {
+        this.modal = document.getElementById('reviewMovieDraftModal');
+        this.content = document.getElementById('reviewContent');
+        this.alert = document.getElementById('reviewAlert');
+        
+        if (this.modal) {
+            this.init();
+        }
+    }
+
+    init() {
+        this.modal.addEventListener('show.bs.modal', async () => {
+            try {
+                const res = await fetch('admin-actions/get-movie-draft.php');
+                
+                if (!res.ok) throw new Error('Failed to fetch draft');
+                
+                const data = await res.json();
+                
                 if (data.error) {
-                    showAlert(data.error, 'danger');
+                    this.showAlert(data.error, 'danger');
                     return;
                 }
-                renderDraft(data);
-            })
-            .catch(() => {
-                showAlert('Failed to load draft.', 'danger');
-            });
-    });
+                
+                this.renderDraft(data);
+            } catch (error) {
+                this.showAlert(error.message, 'danger');
+            }
+        });
+    }
 
-    function renderDraft(draft) {
+    renderDraft(draft) {
         let html = '';
 
-        /* 1. VISUAL PREVIEW (Poster & Backdrop) */
-        html += section('Visuals', `
+        // Visual Preview
+        html += this.section('Visuals', `
             <div class="row g-2">
                 <div class="col-md-8">
-                    <small class="text-muted d-block mb-1">Backdrop Preview:</small>
+                    <small class="text-white d-block mb-1">Backdrop Preview:</small>
                     <img src="${draft.basic.backdrop_path || 'assets/img/default-backdrop.jpg'}" 
                         class="img-fluid rounded border border-secondary" 
                         style="height: 150px; width: 100%; object-fit: cover;">
                 </div>
                 <div class="col-md-4 text-center">
-                    <small class="text-muted d-block mb-1">Poster:</small>
+                    <small class="text-white d-block mb-1">Poster:</small>
                     <img src="${draft.basic.poster_path || 'assets/img/default-poster.jpg'}" 
                         class="img-thumbnail" 
                         style="height: 150px; width: 100px; object-fit: cover;">
@@ -613,13 +425,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `);
 
-        /* 2. BASIC INFORMATION */
-        html += section('Basic Information', `
+        // Basic Information
+        html += this.section('Basic Information', `
             <div class="row">
                 <div class="col-12">
-                    <h4 class="text-primary mb-1">${escapeHtml(draft.basic.title)}</h4>
+                    <h4 class="text-primary mb-1">${this.escapeHtml(draft.basic.title)}</h4>
                     <div class="mb-2">
-                        <span class="badge bg-info text-dark">${draft.basic.type.toUpperCase()}</span>
                         <span class="badge bg-warning text-dark">${draft.basic.content_rating}</span>
                         <span class="badge bg-secondary">${draft.basic.language}</span>
                         <span class="badge bg-dark border border-secondary">TMDB ID: ${draft.basic.tmdb_id || 'N/A'}</span>
@@ -634,14 +445,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <div class="p-2 bg-secondary bg-opacity-10 rounded">
                         <strong>Overview:</strong><br>
-                        <small class="text-white-50">${escapeHtml(draft.basic.overview)}</small>
+                        <small class="text-white-50">${this.escapeHtml(draft.basic.overview)}</small>
                     </div>
                 </div>
             </div>
         `);
 
-        /* 3. CREW (Directors & Writers) */
-        html += section('Crew', `
+        // Crew
+        html += this.section('Crew', `
             <div class="row">
                 <div class="col-md-6">
                     <strong class="text-white">Directors:</strong>
@@ -654,8 +465,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `);
 
-        /* 4. CAST */
-        html += section('Cast', `
+        // Cast
+        html += this.section('Cast', `
             <div class="row row-cols-2 row-cols-md-4 g-2">
                 ${draft.cast.map(c => `
                     <div class="col">
@@ -664,8 +475,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 class="rounded-circle me-2" 
                                 style="width: 35px; height: 35px; object-fit: cover; border: 1px solid #444;">
                             <div style="font-size: 0.7rem;" class="text-truncate">
-                                <div class="fw-bold text-white">${escapeHtml(c.actor)}</div>
-                                <div class="text-muted">${escapeHtml(c.character)}</div>
+                                <div class="fw-bold text-white">${this.escapeHtml(c.actor)}</div>
+                                <div class="text-white">${this.escapeHtml(c.character)}</div>
                             </div>
                         </div>
                     </div>
@@ -673,20 +484,20 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `);
 
-        /* 5. TRAILER */
+        // Trailer
         if (draft.trailer && draft.trailer.url) {
-            html += section('Trailer', `
+            html += this.section('Trailer', `
                 <div class="p-2 bg-dark rounded border border-primary">
                     <i class="bi bi-youtube text-danger me-2"></i>
-                    <small class="text-white-50">${escapeHtml(draft.trailer.url)}</small>
+                    <small class="text-white-50">${this.escapeHtml(draft.trailer.url)}</small>
                 </div>
             `);
         }
 
-        reviewContent.innerHTML = html;
+        this.content.innerHTML = html;
     }
 
-    function section(title, body) {
+    section(title, body) {
         return `
             <div class="mb-4">
                 <h6 class="border-bottom pb-1 mb-2">${title}</h6>
@@ -695,118 +506,317 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    function showAlert(msg, type) {
-        reviewAlert.className = `alert alert-${type}`;
-        reviewAlert.textContent = msg;
-        reviewAlert.classList.remove('d-none');
+    showAlert(msg, type) {
+        this.alert.className = `alert alert-${type}`;
+        this.alert.textContent = msg;
+        this.alert.classList.remove('d-none');
     }
 
-    function escapeHtml(text) {
+    escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
-});
+}
 
-// confirm button
-// document.addEventListener('DOMContentLoaded', () => {
-//     const confirmBtn = document.getElementById('confirmMovieSaveBtn');
+// ========================================
+// 9. CONFIRM MOVIE SAVE
+// ========================================
+class ConfirmMovieSave {
+    constructor() {
+        this.confirmBtn = document.getElementById('confirmMovieSaveBtn');
+        if (this.confirmBtn) {
+            this.init();
+        }
+    }
 
-//     if (!confirmBtn) return;
+    init() {
+        this.confirmBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
 
-//     confirmBtn.addEventListener('click', () => {
-//         confirmBtn.disabled = true;
+            // Show loading
+            Swal.fire({
+                title: 'Saving...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
 
-//         fetch('admin-actions/commit-movie.php', { method: 'POST' })
-//             .then(res => res.json())
-//             .then(data => {
-//                 if (data.status === 'success') {
-//                     location.reload();
-//                 } else {
-//                     confirmBtn.disabled = false;
-//                     alert('Failed to save movie.');
-//                 }
-//             })
-//             .catch(() => {
-//                 confirmBtn.disabled = false;
-//                 alert('Unexpected error occurred.');
-//             });
-//     });
-// });
-// confirm button
-document.addEventListener('DOMContentLoaded', () => {
-    const confirmBtn = document.getElementById('confirmMovieSaveBtn');
+            this.confirmBtn.disabled = true;
 
-    if (!confirmBtn) return;
+            try {
+                const res = await fetch('admin-actions/commit-movie.php', { method: 'POST' });
+                
+                if (!res.ok) throw new Error('Server error');
+                
+                const data = await res.json();
 
-    confirmBtn.addEventListener('click', () => {
-        // 1. Show a "Processing" alert immediately
-        Swal.fire({
-            title: 'Saving Movie...',
-            text: 'Please wait while we update the database.',
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
-        confirmBtn.disabled = true;
-
-        fetch('admin-actions/commit-movie.php', { method: 'POST' })
-            .then(res => res.json())
-            .then(data => {
                 if (data.status === 'success') {
-                    // 2. Show Success Alert
-                    Swal.fire({
+                    await Swal.fire({
                         title: 'Success!',
                         text: 'The movie has been added successfully.',
                         icon: 'success',
                         confirmButtonColor: '#0d6efd'
-                    }).then(() => {
-                        // 3. Reload only AFTER they click the "OK" button
-                        location.reload();
                     });
+
+                    // Clear draft and reload
+                    await fetch('admin-actions/clear-movie-draft.php');
+                    location.reload();
                 } else {
-                    confirmBtn.disabled = false;
-                    Swal.fire({
-                        title: 'Error!',
-                        text: data.error || 'Failed to save movie.',
-                        icon: 'error'
-                    });
+                    throw new Error(data.error || 'Failed to save movie.');
                 }
-            })
-            .catch(() => {
-                confirmBtn.disabled = false;
+            } catch (error) {
+                this.confirmBtn.disabled = false;
                 Swal.fire({
-                    title: 'Oops!',
-                    text: 'An unexpected error occurred.',
+                    title: 'Error!',
+                    text: error.message,
                     icon: 'error'
                 });
-            });
-    });
-});
+            }
+        });
+    }
+}
 
-// star for rating
-function toggleFeatured(movieId) {
-    fetch(`admin-actions/toggle-featured.php?id=${movieId}`, { method: 'POST' })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            // SweetAlert notification
-            const icon = data.new_state ? '⭐' : '⚪';
-            const msg = data.new_state ? 'Added to Highlights' : 'Removed from Highlights';
-            
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: msg,
-                showConfirmButton: false,
-                timer: 2000
-            }).then(() => {
-                location.reload(); // Reload to update the star icon color
-            });
+// ========================================
+// 10. DRAFT CLEANUP ON MODAL CLOSE
+// ========================================
+class DraftCleanup {
+    constructor() {
+        this.mainModal = document.getElementById('addMovieModal');
+        this.isInModalFlow = false;
+        
+        if (this.mainModal) {
+            this.init();
         }
+    }
+
+    init() {
+        // Track when we're in the modal flow
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('show.bs.modal', () => {
+                this.isInModalFlow = true;
+            });
+        });
+
+        // Only clear when truly exiting
+        this.mainModal.addEventListener('hidden.bs.modal', async () => {
+            // Wait for modal transitions to complete
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // If no other modal is showing, we've exited the flow
+            if (!document.querySelector('.modal.show')) {
+                this.isInModalFlow = false;
+                await this.clearDraft();
+            }
+        });
+    }
+
+    async clearDraft() {
+        try {
+            // Clear server-side draft
+            await fetch('admin-actions/clear-movie-draft.php');
+
+            // Reset all forms
+            const forms = [
+                'addMovieForm', 'movieGenresForm', 'movieTrailerForm',
+                'movieDirectorsForm', 'movieWritersForm', 'movieCastForm'
+            ];
+
+            forms.forEach(id => {
+                const form = document.getElementById(id);
+                if (form) {
+                    form.reset();
+                    
+                    // Clear textareas
+                    const overview = form.querySelector('textarea[name="overview"]');
+                    if (overview) overview.value = '';
+                    
+                    // Clear hidden fields
+                    form.querySelectorAll('input[type="hidden"]').forEach(hidden => {
+                        hidden.value = '';
+                    });
+                }
+            });
+
+            console.log('Draft cleared successfully');
+        } catch (error) {
+            console.error('Failed to clear draft:', error);
+        }
+    }
+}
+
+// ========================================
+// 11. SIMPLE MODAL FORMS
+// ========================================
+function setupSimpleModalForm(formId, modalId, successMessage) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert(successMessage);
+        bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
+        form.reset();
     });
 }
+
+// ========================================
+// 12. INITIALIZE EVERYTHING
+// ========================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Core Navigation
+    new SectionManager();
+    new MobileSidebar();
+
+    // Search with explicit table body IDs
+    new SearchManager([
+        { inputId: 'movieSearch', tableBodyId: 'moviesTableBody' },
+        { inputId: 'seriesSearch', tableBodyId: 'seriesTableBody' },
+        { inputId: 'userSearch', tableBodyId: 'usersTableBody' },
+        { inputId: 'reviewSearch', tableBodyId: 'reviewsTableBody' }
+    ]);
+
+    // Multi-step modal flow
+    new MultiStepModalHandler([
+        { formId: 'addMovieForm', currentModalId: 'addMovieModal', nextModalId: 'addMovieGenresModal' },
+        { formId: 'movieGenresForm', currentModalId: 'addMovieGenresModal', nextModalId: 'addMovieTrailerModal' },
+        { formId: 'movieTrailerForm', currentModalId: 'addMovieTrailerModal', nextModalId: 'addMovieDirectorsModal' },
+        { formId: 'movieDirectorsForm', currentModalId: 'addMovieDirectorsModal', nextModalId: 'addMovieWritersModal' },
+        { formId: 'movieWritersForm', currentModalId: 'addMovieWritersModal', nextModalId: 'addMovieCastModal' },
+        { formId: 'movieCastForm', currentModalId: 'addMovieCastModal', nextModalId: 'reviewMovieDraftModal' }
+    ]);
+
+    // Dynamic lists
+    const directorTpl = `<div class="input-group mb-2 director-row">
+        <input type="text" name="directors[]" class="form-control bg-dark text-white border-secondary" placeholder="Director name" required>
+        <button type="button" class="btn btn-outline-danger"><i class="bi bi-x"></i></button>
+    </div>`;
+
+    const writerTpl = `<div class="input-group mb-2 writer-row">
+        <input type="text" name="writers[]" class="form-control bg-dark text-white border-secondary" placeholder="Writer name" required>
+        <button type="button" class="btn btn-outline-danger"><i class="bi bi-x"></i></button>
+    </div>`;
+
+    const castTpl = `<div class="row g-2 mb-2 cast-row">
+        <div class="col-md-4"><input type="text" name="actors[]" class="form-control bg-dark text-white border-secondary" placeholder="Actor" required></div>
+        <div class="col-md-4"><input type="text" name="characters[]" class="form-control bg-dark text-white border-secondary" placeholder="Character" required></div>
+        <div class="col-md-3"><input type="text" name="actor_images[]" class="form-control bg-dark text-white border-secondary" placeholder="Image Path"></div>
+        <div class="col-md-1 d-grid"><button type="button" class="btn btn-outline-danger"><i class="bi bi-x"></i></button></div>
+    </div>`;
+
+    new DynamicListManager([
+        { btnId: 'addDirectorBtn', containerId: 'directorsContainer', rowClass: 'director-row', template: directorTpl },
+        { btnId: 'addWriterBtn', containerId: 'writersContainer', rowClass: 'writer-row', template: writerTpl },
+        { btnId: 'addCastBtn', containerId: 'castContainer', rowClass: 'cast-row', template: castTpl }
+    ]);
+
+    // Draft review and save
+    new DraftReviewModal();
+    new ConfirmMovieSave();
+    new DraftCleanup();
+
+    // Simple modal forms
+    setupSimpleModalForm('editMovieForm', 'editMovieModal', 'Movie updated successfully!');
+    setupSimpleModalForm('addSeriesForm', 'addSeriesModal', 'Series added successfully!');
+    setupSimpleModalForm('editSeriesForm', 'editSeriesModal', 'Series updated successfully!');
+    setupSimpleModalForm('addUserForm', 'addUserModal', 'User added successfully!');
+    setupSimpleModalForm('editUserForm', 'editUserModal', 'User updated successfully!');
+
+    // Filter handlers
+    document.getElementById('movieGenreFilter')?.addEventListener('change', (e) => {
+        console.log('Filtering by genre:', e.target.value);
+    });
+
+    document.getElementById('movieYearFilter')?.addEventListener('change', (e) => {
+        console.log('Filtering by year:', e.target.value);
+    });
+
+    // Bootstrap tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+});
+
+// for genre
+document.getElementById('movieGenresForm').addEventListener('submit', function(e) {
+    // Get all checkboxes inside the form
+    const checkboxes = this.querySelectorAll('input[name="genres[]"]');
+    const errorMsg = document.getElementById('genre-error');
+    
+    // Check if at least one is checked
+    const isChecked = Array.from(checkboxes).some(cb => cb.checked);
+
+    if (!isChecked) {
+        // Stop the form from submitting
+        e.preventDefault();
+        
+        // Show the error message
+        errorMsg.classList.remove('d-none');
+        
+        // Optional: shake the modal to grab attention
+        this.closest('.modal-content').classList.add('shake-animation');
+        setTimeout(() => {
+            this.closest('.modal-content').classList.remove('shake-animation');
+        }, 500);
+    } else {
+        // Hide error message if they finally picked one
+        errorMsg.classList.add('d-none');
+    }
+});
+
+// Real-time search functionality
+let searchTimeout;
+const movieSearchInput = document.getElementById('movieSearch');
+
+if (movieSearchInput) {
+    movieSearchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            document.getElementById('searchForm').submit();
+        }, 500); // Wait 500ms after user stops typing
+    });
+}
+
+// Apply filters function
+function applyFilters() {
+    const genre = document.getElementById('movieGenreFilter').value;
+    const year = document.getElementById('movieYearFilter').value;
+    const search = document.getElementById('movieSearch').value;
+    
+    let url = '?section=movies&page=1';
+    
+    if (search) {
+        url += '&search=' + encodeURIComponent(search);
+    }
+    if (genre) {
+        url += '&genre=' + encodeURIComponent(genre);
+    }
+    if (year) {
+        url += '&year=' + encodeURIComponent(year);
+    }
+    
+    window.location.href = url;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Genre filter
+    const genreFilter = document.getElementById('movieGenreFilter');
+    if (genreFilter) {
+        genreFilter.addEventListener('change', applyFilters);
+    }
+    
+    // Year filter
+    const yearFilter = document.getElementById('movieYearFilter');
+    if (yearFilter) {
+        yearFilter.addEventListener('change', applyFilters);
+    }
+    
+    // Start carousel immediately on page load
+    const carouselEl = document.getElementById('featuredSlider');
+    if (carouselEl) {
+        var carousel = new bootstrap.Carousel(carouselEl, {
+            interval: 4000,
+            ride: 'carousel',
+            pause: 'hover'
+        });
+        carousel.cycle();
+    }
+});

@@ -110,7 +110,7 @@ $stmtCast->execute();
 $castResult = $stmtCast->get_result();
 
 // 2. Full Cast URL (using tmdb_id from your movies table)
-$tmdbType = ($movieData['type'] === 'series') ? 'tv' : 'movie';
+$tmdbType = 'movie';
 
 $fullCastUrl = !empty($movieData['tmdb_id']) 
     ? "https://www.themoviedb.org/" . $tmdbType . "/" . $movieData['tmdb_id'] . "/cast"
@@ -156,7 +156,7 @@ $fullCastUrl = !empty($movieData['tmdb_id'])
     <?php include 'includes/navbar.php'; ?>
 
     <!-- HERO BANNER -->
-    <section class="details-hero" style="background-image: url('<?= $backdrop; ?>');">
+    <section class="details-hero" style="background-image: url('<?= htmlspecialchars($backdrop); ?>');">
         <div class="details-hero-overlay"></div>
     </section>
 
@@ -165,25 +165,32 @@ $fullCastUrl = !empty($movieData['tmdb_id'])
         <div class="row">
             <!-- Movie Poster (Floating) -->
             <div class="col-12 col-md-3">
-                <img src="<?= htmlspecialchars($movieData['poster_path']); ?>" 
-                     class="img-fluid floating-poster" 
-                     alt="<?= htmlspecialchars($movieData['title']); ?>">
+                <?php 
+                    $poster = !empty($movieData['poster_path']) ? $movieData['poster_path'] : 'assets/img/default-poster.jpg';
+                ?>
+                <img src="<?= htmlspecialchars($poster); ?>" 
+                    class="img-fluid floating-poster shadow-lg rounded" 
+                    alt="<?= htmlspecialchars($movieData['title']); ?>">
             </div>
 
             <!-- Movie Information -->
             <div class="col-12 col-md-9 mt-4 mt-md-0">
                 <!-- Title & Meta -->
-                <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
-                    <h1 class="display-5 fw-bold mb-0"><?= htmlspecialchars($movieData['title']); ?></h1>
-                    <span class="badge bg-warning text-dark fs-6">PG-13</span>
+                <div class="mb-3">
+                    <h1 class="display-5 fw-bold text-white d-inline">
+                        <?= htmlspecialchars($movieData['title']); ?>
+                        <span class="badge bg-warning text-dark fs-6 ms-2 align-middle">
+                            <?= htmlspecialchars($movieData['content_rating'] ?? 'NR'); ?>
+                        </span>
+                    </h1>
                 </div>
 
                 <p class="text-white mb-4">
-                    <i class="bi bi-calendar3 me-1"></i> <?= $movieData['release_year']; ?>
-                    <span class="mx-2">•</span>
-                    <i class="bi bi-clock me-1"></i> <?= formatDuration($movieData['duration']); ?>
-                    <span class="mx-2">•</span>
-                    <i class="bi bi-translate me-1"></i> English
+                    <i class="bi bi-calendar3 me-1 text-primary"></i> <?= $movieData['release_year']; ?>
+                    <span class="mx-2 text-secondary">•</span>
+                    <i class="bi bi-clock me-1 text-primary"></i> <?= formatDuration($movieData['duration']); ?>
+                    <span class="mx-2 text-secondary">•</span>
+                    <i class="bi bi-translate me-1 text-primary"></i> <?= htmlspecialchars($movieData['language']); ?>
                 </p>
 
                 <!-- Genres -->

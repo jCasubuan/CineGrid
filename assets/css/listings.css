@@ -66,6 +66,41 @@
     margin-top: 40px;
 }
 
+/* Title stays at fixed height for alignment */
+.media-card .card-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 1.4rem; 
+    line-height: 1.4rem;
+    margin-bottom: 2px; 
+}
+
+.movie-stats {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.movie-genres-list {
+    font-size: 1.0rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.movie-year {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    display: block;
+    margin-bottom: 8px;
+}
+
+.media-card .card-body {
+    padding: 10px 12px;
+}
+
 .pagination .page-link {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);

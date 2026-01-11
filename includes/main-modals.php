@@ -1,20 +1,42 @@
 <!-- MODALS -->
-    <!-- Searh Field Modal-->
+    <!-- Search Field Modal -->
     <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-0">
+                <div class="modal-header border-secondary">
                     <h5 class="modal-title" id="searchModalLabel">
                         <i class="bi bi-search me-2"></i>Search CineGrid
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="search" class="form-control form-control-lg"
-                        placeholder="Start typing a movie, series, or actor..." aria-label="Search">
-                    <div class="mt-3">
-                        <small class="text-white">Trending: Marvel, Christpher Nolan, Squid Game</small>
+                    <input type="search" 
+                        id="globalSearchInput"
+                        class="form-control form-control-lg bg-dark text-white border-secondary"
+                        placeholder="Start typing a movie, series, or actor..." 
+                        aria-label="Search"
+                        autocomplete="off">
+                    
+                    <!-- Loading Indicator -->
+                    <div id="searchLoading" class="text-center py-4 d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-white-50">Searching...</p>
+                    </div>
+
+                    <!-- Search Results -->
+                    <div id="searchResults" class="search-results-container mt-3"></div>
+
+                    <!-- No Results Message -->
+                    <div id="noResults" class="text-center py-5 d-none">
+                        <i class="bi bi-search fs-1 text-white-50"></i>
+                        <p class="mt-3 text-white-50">No results found. Try a different search term.</p>
+                    </div>
+
+                    <!-- Initial State -->
+                    <div id="searchInitialState" class="mt-3">
+                        <small class="text-white-50">Trending: Marvel, Christopher Nolan, Squid Game</small>
                     </div>
                 </div>
             </div>

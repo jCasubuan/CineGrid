@@ -2,7 +2,7 @@
 <?php
 require_once 'includes/init.php';
 
-// error handling for unauthorized access of admin.php from the url
+// validation for unauthorized access of admin.php from the url
 if (
     empty($_SESSION['user_id']) ||
     empty($_SESSION['user_role']) ||
@@ -15,43 +15,114 @@ if (
 // Fetch movie count
 $movieCount = $Conn->query("SELECT COUNT(*) as total FROM movies")->fetch_assoc()['total'];
 
-// // Fetch Series Count (if you have a series table, otherwise set to 0)
+// Fetch series count
 // $seriesCount = $Conn->query("SELECT COUNT(*) as total FROM series")->fetch_assoc()['total'];
 
 // Fetch User Count
 $userCount = $Conn->query("SELECT COUNT(*) as total FROM users WHERE role != 'admin'")->fetch_assoc()['total'];
 
-// // Fetch Review Count (assuming you have a reviews table)
-// $reviewCount = $Conn->query("SELECT COUNT(*) as total FROM reviews")->fetch_assoc()['total'];
+// Fetch review count
+// $reviewCount = $Conn->query("SELECT COUNT(*) as total FROM reviews")->fetch_assoc()['total']; -->
 
-// to get the 5 recent activity
+// Define genres array (matching your movie setup)
+$genres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Drama', 'Fantasy', 'Horror', 'Sci-Fi', 'Thriller'];
+
+// Get filter parameters
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$genre_filter = isset($_GET['genre']) ? trim($_GET['genre']) : '';
+$year_filter = isset($_GET['year']) ? trim($_GET['year']) : '';
+
+// Pagination Logic
+$limit = 5; 
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$offset = ($page - 1) * $limit;
+
+// Build dynamic WHERE clause for filtering
+$where_conditions = [];
+$params = [];
+$types = '';
+
+if (!empty($search)) {
+    $where_conditions[] = "m.title LIKE ?";
+    $params[] = "%$search%";
+    $types .= 's';
+}
+
+if (!empty($genre_filter)) {
+    $where_conditions[] = "g.name = ?";
+    $params[] = $genre_filter;
+    $types .= 's';
+}
+
+if (!empty($year_filter)) {
+    $where_conditions[] = "m.release_year = ?";
+    $params[] = $year_filter;
+    $types .= 'i';
+}
+
+$where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
+
+// Count total movies with filters
+$count_query = "SELECT COUNT(DISTINCT m.movie_id) as count 
+                FROM movies m 
+                LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id 
+                LEFT JOIN genres g ON mg.genre_id = g.genre_id 
+                $where_clause";
+
+if (!empty($params)) {
+    $count_stmt = $Conn->prepare($count_query);
+    $count_stmt->bind_param($types, ...$params);
+    $count_stmt->execute();
+    $total_movies = $count_stmt->get_result()->fetch_assoc()['count'];
+    $count_stmt->close();
+} else {
+    $total_movies = $Conn->query($count_query)->fetch_assoc()['count'];
+}
+
+$total_pages = ceil($total_movies / $limit);
+
+// Fetch movies with filters
+$movies_query = "SELECT m.*, GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ') as genre_names 
+                 FROM movies m 
+                 LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id 
+                 LEFT JOIN genres g ON mg.genre_id = g.genre_id 
+                 $where_clause
+                 GROUP BY m.movie_id 
+                 ORDER BY m.movie_id DESC 
+                 LIMIT ? OFFSET ?";
+
+if (!empty($params)) {
+    $movies_stmt = $Conn->prepare($movies_query);
+    $params[] = $limit;
+    $params[] = $offset;
+    $types .= 'ii';
+    $movies_stmt->bind_param($types, ...$params);
+    $movies_stmt->execute();
+    $movies = $movies_stmt->get_result();
+    $movies_stmt->close();
+} else {
+    $movies_stmt = $Conn->prepare($movies_query);
+    $movies_stmt->bind_param('ii', $limit, $offset);
+    $movies_stmt->execute();
+    $movies = $movies_stmt->get_result();
+    $movies_stmt->close();
+}
+
+// Get unique years from database (for year filter dropdown)
+$years_query = "SELECT DISTINCT release_year FROM movies WHERE release_year IS NOT NULL ORDER BY release_year DESC";
+$years_result = $Conn->query($years_query);
+$available_years = [];
+while ($row = $years_result->fetch_assoc()) {
+    $available_years[] = $row['release_year'];
+}
+
+// Recent Activity (for dashboard)
 $recentActivity = $Conn->query("
     SELECT title, created_at 
     FROM movies 
     ORDER BY created_at DESC 
-    LIMIT 5
+    LIMIT $limit OFFSET $offset
 ");
-
-// Pagination Logic
-$limit = 5; // Items per page
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($page - 1) * $limit;
-
-// Get total movies for pagination count
-$total_res = $Conn->query("SELECT COUNT(*) as count FROM movies");
-$total_movies = $total_res->fetch_assoc()['count'];
-$total_pages = ceil($total_movies / $limit);
-
-// Fetch only 5 movies for the current page 
-// Note: We JOIN movie_genres and genres to get the names
-$movies_query = "SELECT m.*, GROUP_CONCAT(g.name SEPARATOR ', ') as genre_names 
-                 FROM movies m 
-                 LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id 
-                 LEFT JOIN genres g ON mg.genre_id = g.genre_id 
-                 GROUP BY m.movie_id 
-                 ORDER BY m.movie_id DESC 
-                 LIMIT $limit OFFSET $offset";
-$movies = $Conn->query($movies_query);
 ?>
 
 <!DOCTYPE html>
@@ -202,6 +273,28 @@ $movies = $Conn->query($movies_query);
                         <?php endif; ?>
                     </tbody>
                 </table>
+            </div> 
+            <div class="mt-4 d-flex flex-column align-items-center">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-2">
+                        <li class="page-item <?= ($page <= 1) ? 'disabled' : ''; ?>">
+                            <a class="page-link bg-dark border-secondary text-white" href="?page=<?= $page - 1; ?>">Previous</a>
+                        </li>
+                        
+                        <?php for($i = 1; $i <= $total_pages; $i++): ?>
+                            <li class="page-item <?= ($page == $i) ? 'active' : ''; ?>">
+                                <a class="page-link <?= ($page == $i) ? 'bg-primary border-primary' : 'bg-dark border-secondary text-white'; ?>" href="?page=<?= $i; ?>"><?= $i; ?></a>
+                            </li>
+                        <?php endfor; ?>
+
+                        <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : ''; ?>">
+                            <a class="page-link bg-dark border-secondary text-white" href="?page=<?= $page + 1; ?>">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+                <small class="text-white-50">
+                    Showing <?= ($offset + 1); ?> to <?= min($offset + $limit, $total_movies); ?> of <?= $total_movies; ?> entries
+                </small>
             </div>
         </section>
 
@@ -217,29 +310,64 @@ $movies = $Conn->query($movies_query);
             <!-- Search and Filter -->
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <div class="search-bar">
-                        <input type="text" id="movieSearch" placeholder="Search movies..." class="form-control">
-                        <i class="bi bi-search"></i>
-                    </div>
+                    <form method="GET" action="" id="searchForm">
+                        <input type="hidden" name="section" value="movies">
+                        <input type="hidden" name="page" value="1">
+                        <input type="hidden" name="genre" value="<?= htmlspecialchars($genre_filter); ?>">
+                        <input type="hidden" name="year" value="<?= htmlspecialchars($year_filter); ?>">
+                        <div class="search-bar">
+                            <input type="text" 
+                                name="search" 
+                                id="movieSearch" 
+                                placeholder="Search movies..." 
+                                class="form-control"
+                                value="<?= htmlspecialchars($search); ?>"
+                                autocomplete="off">
+                            <i class="bi bi-search"></i>
+                        </div>
+                    </form>
                 </div>
                 <div class="col-md-3">
                     <select class="form-select" id="movieGenreFilter">
                         <option value="">All Genres</option>
-                        <option>Action</option>
-                        <option>Drama</option>
-                        <option>Comedy</option>
-                        <option>Sci-Fi</option>
+                        <?php foreach($genres as $genre): ?>
+                            <option value="<?= htmlspecialchars($genre); ?>" <?= ($genre_filter === $genre) ? 'selected' : ''; ?>>
+                                <?= htmlspecialchars($genre); ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <select class="form-select" id="movieYearFilter">
                         <option value="">All Years</option>
-                        <option>2024</option>
-                        <option>2023</option>
-                        <option>2022</option>
+                        <?php foreach($available_years as $year): ?>
+                            <option value="<?= $year; ?>" <?= ($year_filter == $year) ? 'selected' : ''; ?>>
+                                <?= $year; ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
             </div>
+
+            <!-- Add Clear Filters Button if any filter is active -->
+            <?php if (!empty($search) || !empty($genre_filter) || !empty($year_filter)): ?>
+            <div class="mb-3">
+                <a href="?section=movies&page=1" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>Clear Filters
+                </a>
+                <span class="text-white-50 ms-2">
+                    <?php if (!empty($search)): ?>
+                        Search: "<?= htmlspecialchars($search); ?>" 
+                    <?php endif; ?>
+                    <?php if (!empty($genre_filter)): ?>
+                        | Genre: <?= htmlspecialchars($genre_filter); ?>
+                    <?php endif; ?>
+                    <?php if (!empty($year_filter)): ?>
+                        | Year: <?= htmlspecialchars($year_filter); ?>
+                    <?php endif; ?>
+                </span>
+            </div>
+            <?php endif; ?>
 
             <!-- Movies Table -->
             <div class="data-table">
@@ -257,69 +385,111 @@ $movies = $Conn->query($movies_query);
                         </tr>
                     </thead>
                     <tbody id="moviesTableBody">
-                        <?php if ($movies->num_rows > 0): ?>
+                        <?php if ($movies && $movies->num_rows > 0): ?>
                             <?php while($row = $movies->fetch_assoc()): ?>
                                 <tr>
                                     <td>#<?= str_pad($row['movie_id'], 3, '0', STR_PAD_LEFT); ?></td>
                                     <td>
-                                        <img src="<?= $row['poster_path'] ?: 'assets/img/no-poster.jpg'; ?>" 
-                                            class="thumbnail" alt="Poster" style="width:50px; height:75px; object-fit:cover;">
+                                        <img src="<?= !empty($row['poster_path']) ? $row['poster_path'] : 'assets/img/no-poster.jpg'; ?>" 
+                                            class="rounded border border-secondary" 
+                                            alt="Poster" 
+                                            style="width:45px; height:65px; object-fit:cover;">
                                     </td>
                                     <td>
-                                        <div class="fw-bold"><?= htmlspecialchars($row['title']); ?></div>
-                                        <small class="text-white"><?= ucfirst($row['type']); ?></small>
+                                        <div class="fw-bold text-white"><?= htmlspecialchars($row['title']); ?></div>
+                                        <small class="text-info">Standard Feature</small> </td>
                                     </td>
-                                    <td><span class="small"><?= htmlspecialchars($row['genre_names'] ?: 'N/A'); ?></span></td>
-                                    <td><?= $row['release_year']; ?></td>                                
+                                    <td><span class="small text-white-50"><?= htmlspecialchars($row['genre_names'] ?: 'Uncategorized'); ?></span></td>
+                                    <td><?= $row['release_year']; ?></td>                              
                                     <td>
                                         <span class="badge bg-dark text-warning border border-warning">
-                                            <i class="bi bi-star-fill me-1"></i><?= $row['rating']; ?>
+                                            <i class="bi bi-star-fill me-1"></i><?= number_format($row['rating'], 1); ?>
                                         </span>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm <?= $row['is_featured'] ? 'btn-warning' : 'btn-outline-secondary' ?>" 
+                                        <button class="btn btn-sm <?= $row['is_featured'] ? 'btn-warning' : 'btn-outline-secondary' ?>"
                                                 onclick="toggleFeatured(<?= $row['movie_id']; ?>)" 
                                                 title="Toggle Hero Banner">
                                             <i class="bi <?= $row['is_featured'] ? 'bi-lightning-fill' : 'bi-lightning' ?>"></i>
                                         </button>
                                     </td>
                                     <td>
-                                        <button class="action-btn btn-view" onclick="viewMovie(<?= $row['movie_id']; ?>)">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                        <button class="action-btn btn-edit" data-bs-toggle="modal" data-bs-target="#editMovieModal">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="action-btn btn-delete" onclick="deleteMovie(<?= $row['movie_id']; ?>, '<?= addslashes($row['title']); ?>')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
+                                        <div class="d-flex gap-2">
+                                            <a href="movie-details.php?id=<?= $row['movie_id']; ?>" class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editMovieModal" onclick="loadEditData(<?= $row['movie_id']; ?>)">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMovie(<?= $row['movie_id']; ?>, '<?= addslashes($row['title']); ?>')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
                                 </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
-                            <tr><td colspan="6" class="text-center py-4 text-white">No movies found.</td></tr>
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-white-50">
+                                    <i class="bi bi-folder2-open d-block fs-2 mb-2"></i>
+                                    No movies found in the database.
+                                </td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
             </div>
 
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item <?= ($page <= 1) ? 'disabled' : ''; ?>">
-                        <a class="page-link" href="?page=<?= $page - 1; ?>">Previous</a>
-                    </li>
-
-                    <?php for($i = 1; $i <= $total_pages; $i++): ?>
-                        <li class="page-item <?= ($page == $i) ? 'active' : ''; ?>">
-                            <a class="page-link" href="?page=<?= $i; ?>"><?= $i; ?></a>
+            <div class="data-table border-0 shadow-sm">
+                <table class="table table-dark table-hover mb-0 align-middle">
+                    </table>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="mt-4 d-flex flex-column align-items-center">
+                <?php
+                // Build filter query string for pagination
+                $filter_params = '';
+                if (!empty($search)) {
+                    $filter_params .= '&search=' . urlencode($search);
+                }
+                if (!empty($genre_filter)) {
+                    $filter_params .= '&genre=' . urlencode($genre_filter);
+                }
+                if (!empty($year_filter)) {
+                    $filter_params .= '&year=' . urlencode($year_filter);
+                }
+                ?>
+                
+                <nav aria-label="Movie navigation">
+                    <ul class="pagination pagination-sm mb-2">
+                        <li class="page-item <?= ($page <= 1) ? 'disabled' : ''; ?>">
+                            <a class="page-link border-secondary text-white" 
+                            href="?page=<?= $page - 1; ?>&section=movies<?= $filter_params; ?>" 
+                            style="background-color: #1a1d20;">Previous</a>
                         </li>
-                    <?php endfor; ?>
 
-                    <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : ''; ?>">
-                        <a class="page-link" href="?page=<?= $page + 1; ?>">Next</a>
-                    </li>
-                </ul>
-            </nav>
+                        <?php for($i = 1; $i <= $total_pages; $i++): ?>
+                            <li class="page-item <?= ($page == $i) ? 'active' : ''; ?>">
+                                <a class="page-link border-secondary <?= ($page == $i) ? '' : 'text-white'; ?>" 
+                                href="?page=<?= $i; ?>&section=movies<?= $filter_params; ?>"
+                                style="<?= ($page == $i) ? 'background-color: #0d6efd; border-color: #0d6efd;' : 'background-color: #1a1d20;'; ?>">
+                                <?= $i; ?>
+                                </a>
+                            </li>
+                        <?php endfor; ?>
+
+                        <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : ''; ?>">
+                            <a class="page-link border-secondary text-white" 
+                            href="?page=<?= $page + 1; ?>&section=movies<?= $filter_params; ?>" 
+                            style="background-color: #1a1d20;">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <div class="text-white-50 small">
+                    Showing <?= ($total_movies > 0) ? ($offset + 1) : 0; ?> to <?= min($offset + $limit, $total_movies); ?> of <?= $total_movies; ?> movies
+                </div>
+            </div>
         </section>
 
         <!-- Series Section -->

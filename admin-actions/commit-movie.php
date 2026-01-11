@@ -25,18 +25,17 @@ try {
 
     /* 1. Insert movie */
     $stmt = $Conn->prepare("
-        INSERT INTO movies (title, overview, release_year, duration, rating, type, content_rating, language, tmdb_id, poster_path, backdrop_path)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO movies (title, overview, release_year, duration, rating, content_rating, language, tmdb_id, poster_path, backdrop_path)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $stmt->bind_param(
-        'ssiidssssss', 
+        'ssiidssiss', 
         $draft['basic']['title'],
         $draft['basic']['overview'],
         $draft['basic']['release_year'],
         $draft['basic']['duration'],
         $draft['basic']['rating'],
-        $draft['basic']['type'],
         $draft['basic']['content_rating'],
         $draft['basic']['language'],
         $draft['basic']['tmdb_id'],
@@ -136,12 +135,16 @@ try {
     }
 
     $Conn->commit();
-    unset($_SESSION['movie_draft']);
+    //unset($_SESSION['movie_draft']);
     echo json_encode(['status' => 'success']);
 
 } catch (Throwable $e) {
 
-    if ($Conn->connect_errno === 0) { $Conn->rollback(); }
+    if ($Conn && $Conn->connect_errno === 0) {
+        $Conn->rollback();
+    }
+    
+    error_log($e->getMessage()); 
     http_response_code(500);
-    echo json_encode(['error' => 'Failed to save movie']);
+    echo json_encode(['error' => 'Failed to save movie: ' . $e->getMessage()]);
 }
