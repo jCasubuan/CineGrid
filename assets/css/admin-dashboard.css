@@ -360,3 +360,15 @@ body {
     color: white;
     box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
 }
+
+/* for genre */
+.shake-animation {
+    animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    50% { transform: translateX(8px); }
+    75% { transform: translateX(-8px); }
+}

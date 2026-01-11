@@ -1,6 +1,44 @@
 <!-- PHP connection -->
 <?php
 require_once 'includes/init.php';
+global $Conn;
+
+function formatDuration($mins) {
+    if (!$mins) return "N/A";
+    $hours = floor($mins / 60);
+    $minutes = $mins % 60;
+    if ($hours > 0) {
+        return $hours . "h " . ($minutes > 0 ? $minutes . "m" : "");
+    }
+    return $minutes . "m";
+}
+
+// --- PAGINATION LOGIC ---
+$limit = 8;
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
+$offset = ($page - 1) * $limit;
+
+$count_query = "SELECT COUNT(*) as total FROM movies";
+$count_result = mysqli_query($Conn, $count_query);
+$total_movies = mysqli_fetch_assoc($count_result)['total'];
+$total_pages = ceil($total_movies / $limit);
+
+$query = "SELECT m.*, GROUP_CONCAT(g.name SEPARATOR ' • ') AS genre_list 
+          FROM movies m
+          LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id
+          LEFT JOIN genres g ON mg.genre_id = g.genre_id
+          GROUP BY m.movie_id
+          ORDER BY m.movie_id DESC
+          LIMIT $limit OFFSET $offset";
+
+$result = mysqli_query($Conn, $query);
+
+    if (!$result) {
+        die("Query Error: " . mysqli_error($Conn));
+    }
+$count = mysqli_num_rows($result);
+
 ?>
 
 <!DOCTYPE html>
@@ -10,7 +48,7 @@ require_once 'includes/init.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Browse all movies on CineGrid - Filter by genre, year, and rating">
-    <title>CineGrid | <?php echo ucfirst($current_page); ?></title>
+    <title><?php echo ucfirst($current_page); ?> | CineGrid</title> 
 
     <!-- Site Icon / Logo -->
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
@@ -168,7 +206,8 @@ require_once 'includes/init.php';
                         <div>
                             <h2 class="mb-1">All Movies</h2>
                             <p class="mb-0 text-white">
-                                <span id="resultCount">248</span> movies found
+                                <span id="resultCount"><?php echo number_format($total_movies); ?></span> 
+                                <?php echo ($total_movies === 1) ? 'movie' : 'movies'; ?> found
                             </p>
                         </div>
 
@@ -198,169 +237,76 @@ require_once 'includes/init.php';
 
                 <!-- Movie Cards Grid -->
                 <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4 movie-grid" id="movieGrid">
-                    <!-- Movie Card 1 -->
-                    <div class="col">
-                        <a href="movie-details.php" class="text-decoration-none">
-                            <div class="card media-card bg-dark text-white position-relative">
-                                <img src="https://via.placeholder.com/300x450/667eea/ffffff?text=Inception" 
-                                     class="card-img-top" alt="Inception">
-                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                    <i class="bi bi-star-fill"></i> 8.8
-                                </span>
-                                <div class="card-body">
-                                    <h5 class="card-title">Inception</h5>
-                                    <p class="card-text text-white">Sci-Fi • 2010</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
+                    <?php if ($count > 0): ?>
+                        <?php while($movie = mysqli_fetch_assoc($result)): ?>
+                            <div class="col">
+                                <a href="movie-details.php?id=<?php echo $movie['movie_id']; ?>" class="text-decoration-none">
+                                    <div class="card media-card bg-dark text-white position-relative">
+                                        <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2" style="z-index: 5;">
+                                            <i class="bi bi-star-fill"></i> <?php echo number_format($movie['rating'], 1); ?>
+                                        </span>
+                                        
+                                        <img src="<?php echo htmlspecialchars($movie['poster_path']); ?>" 
+                                            class="card-img-top" 
+                                            alt="<?php echo htmlspecialchars($movie['title']); ?>">
+                                        
+                                        <div class="card-body">
+                                            <h5 class="card-title" title="<?php echo htmlspecialchars($movie['title']); ?>">
+                                                <?php echo htmlspecialchars($movie['title']); ?>
+                                            </h5>
 
-                    <!-- Movie Card 2 -->
-                    <div class="col">
-                        <a href="movie-details.php" class="text-decoration-none">
-                            <div class="card media-card bg-dark text-white position-relative">
-                                <img src="https://via.placeholder.com/300x450/764ba2/ffffff?text=The+Dark+Knight" 
-                                     class="card-img-top" alt="The Dark Knight">
-                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                    <i class="bi bi-star-fill"></i> 9.0
-                                </span>
-                                <div class="card-body">
-                                    <h5 class="card-title">The Dark Knight</h5>
-                                    <p class="card-text text-white">Action • 2008</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
+                                            <div class="movie-stats">
+                                                <span><?php echo $movie['release_year']; ?></span>
+                                                <?php if (!empty($movie['duration'])): ?>
+                                                    <span class="mx-2">•</span>
+                                                    <span><i class="bi bi-clock me-1"></i><?= formatDuration($movie['duration']); ?></span>
+                                                <?php endif; ?>
+                                            </div>
 
-                    <!-- Movie Card 3 -->
-                    <div class="col">
-                        <a href="movie-details.php" class="text-decoration-none">
-                            <div class="card media-card bg-dark text-white position-relative">
-                                <img src="https://via.placeholder.com/300x450/4ecdc4/ffffff?text=Interstellar" 
-                                     class="card-img-top" alt="Interstellar">
-                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                    <i class="bi bi-star-fill"></i> 8.6
-                                </span>
-                                <div class="card-body">
-                                    <h5 class="card-title">Interstellar</h5>
-                                    <p class="card-text text-white">Sci-Fi • 2014</p>
-                                </div>
+                                            <div class="movie-genres-list text-truncate">
+                                                <?php 
+                                                    $genres = explode(' • ', $movie['genre_list'] ?? ''); 
+                                                    $short_genres = implode(' • ', array_slice($genres, 0, 3));
+                                                    echo htmlspecialchars($short_genres ?: 'Movie'); 
+                                                ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
                             </div>
-                        </a>
-                    </div>
-
-                    <!-- Movie Card 4 -->
-                    <div class="col">
-                        <a href="movie-details.php" class="text-decoration-none">
-                            <div class="card media-card bg-dark text-white position-relative">
-                                <img src="https://via.placeholder.com/300x450/ff6b6b/ffffff?text=Parasite" 
-                                     class="card-img-top" alt="Parasite">
-                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                    <i class="bi bi-star-fill"></i> 8.5
-                                </span>
-                                <div class="card-body">
-                                    <h5 class="card-title">Parasite</h5>
-                                    <p class="card-text text-white">Thriller • 2019</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <!-- Movie Card 5 -->
-                    <div class="col">
-                        <a href="movie-details.php" class="text-decoration-none">
-                            <div class="card media-card bg-dark text-white position-relative">
-                                <img src="https://via.placeholder.com/300x450/f39c12/ffffff?text=The+Matrix" 
-                                     class="card-img-top" alt="The Matrix">
-                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                    <i class="bi bi-star-fill"></i> 8.7
-                                </span>
-                                <div class="card-body">
-                                    <h5 class="card-title">The Matrix</h5>
-                                    <p class="card-text text-white">Sci-Fi • 1999</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <!-- Movie Card 6 -->
-                    <div class="col">
-                        <a href="movie-details.php" class="text-decoration-none">
-                            <div class="card media-card bg-dark text-white position-relative">
-                                <img src="https://via.placeholder.com/300x450/9b59b6/ffffff?text=Pulp+Fiction" 
-                                     class="card-img-top" alt="Pulp Fiction">
-                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                    <i class="bi bi-star-fill"></i> 8.9
-                                </span>
-                                <div class="card-body">
-                                    <h5 class="card-title">Pulp Fiction</h5>
-                                    <p class="card-text text-white">Crime • 1994</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <!-- Movie Card 7 -->
-                    <div class="col">
-                        <a href="movie-details.php" class="text-decoration-none">
-                            <div class="card media-card bg-dark text-white position-relative">
-                                <img src="https://via.placeholder.com/300x450/e74c3c/ffffff?text=Fight+Club" 
-                                     class="card-img-top" alt="Fight Club">
-                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                    <i class="bi bi-star-fill"></i> 8.8
-                                </span>
-                                <div class="card-body">
-                                    <h5 class="card-title">Fight Club</h5>
-                                    <p class="card-text text-wthie">Drama • 1999</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <!-- Movie Card 8 -->
-                    <div class="col">
-                        <a href="movie-details.php" class="text-decoration-none">
-                            <div class="card media-card bg-dark text-white position-relative">
-                                <img src="https://via.placeholder.com/300x450/16a085/ffffff?text=Forrest+Gump" 
-                                     class="card-img-top" alt="Forrest Gump">
-                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                    <i class="bi bi-star-fill"></i> 8.8
-                                </span>
-                                <div class="card-body">
-                                    <h5 class="card-title">Forrest Gump</h5>
-                                    <p class="card-text text-white">Drama • 1994</p>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <!-- Continue with more movie cards... -->
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <?php endif; ?>
                 </div>
 
                 <!-- Pagination -->
-                <nav aria-label="Movie pagination" class="mt-5">
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item"><a class="page-link" href="#">4</a></li>
-                        <li class="page-item"><a class="page-link" href="#">5</a></li>
-                        <li class="page-item">
-                            <span class="page-link">...</span>
-                        </li>
-                        <li class="page-item"><a class="page-link" href="#">21</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+                <div class="mt-5 d-flex flex-column align-items-center">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-md mb-2">
+                            <li class="page-item <?= ($page <= 1) ? 'disabled' : ''; ?>">
+                                <a class="page-link bg-dark border-secondary text-white" href="?page=<?= $page - 1; ?>">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            
+                            <?php for($i = 1; $i <= $total_pages; $i++): ?>
+                                <li class="page-item <?= ($page == $i) ? 'active' : ''; ?>">
+                                    <a class="page-link <?= ($page == $i) ? 'bg-primary border-primary' : 'bg-dark border-secondary text-white'; ?>" 
+                                    href="?page=<?= $i; ?>"><?= $i; ?></a>
+                                </li>
+                            <?php endfor; ?>
+
+                            <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : ''; ?>">
+                                <a class="page-link bg-dark border-secondary text-white" href="?page=<?= $page + 1; ?>">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <small class="text-white-50">
+                        Showing <?= ($total_movies > 0) ? ($offset + 1) : 0; ?> to <?= min($offset + $limit, $total_movies); ?> of <?= $total_movies; ?> movies
+                    </small>
+                </div>
             </div>
         </div>
     </main>

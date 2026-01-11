@@ -20,23 +20,91 @@ header('Content-Type: application/json');
 $title          = trim($_POST['title'] ?? '');
 $overview       = trim($_POST['overview'] ?? '');
 $releaseYear    = $_POST['release_year'] ?? null;
-$duration       = $_POST['duration'] ?? 0;
-$rating         = $_POST['rating'] ?? 0;
+$duration       = isset($_POST['duration']) ? (int)$_POST['duration'] : 0;
+$rating         = isset($_POST['rating']) ? (float)$_POST['rating'] : 0.0;
 $language       = trim($_POST['language'] ?? 'English');
-$contentRating  = trim($_POST['content_rating'] ?? 'NR'); 
-$type           = $_POST['type'] ?? 'movie';
+$contentRating  = trim($_POST['content_rating'] ?? 'PG');
+$tmdbId         = $_POST['tmdb_id'] ?? null;
+$posterPath     = trim($_POST['poster_path'] ?? '');
+$backdropPath   = trim($_POST['backdrop_path'] ?? '');
 
-// Optional fields
-$tmdbId = $_POST['tmdb_id'] ?? null;
-$posterPath = $_POST['poster_path'] ?? null;
-$backdropPath = $_POST['backdrop_path'] ?? null;
+// Validations
 
-// Validation
-if ($title === '' || $overview === '' || !$releaseYear) {
+// all fields required
+if ($title === '' || $overview === '' || !$releaseYear || !$tmdbId || $posterPath === '' || $backdropPath === '') {
+    http_response_code(422);
+    echo json_encode(['error' => 'Required fields (Title, Overview, Year, TMDB ID, and Images) are missing.']);
+    exit;
+}
+
+// invalid tmdb id
+if (!is_numeric($tmdbId) || $tmdbId <= 0) {
+    http_response_code(422);
+    echo json_encode(['error' => 'Invalid TMDB ID. It must be a positive number.']);
+    exit;
+}
+
+// tmdb length
+$tmdb_len = strlen((string)$tmdbId);
+if ($tmdb_len < 3 || $tmdb_len > 8) {
+    http_response_code(422);
+    echo json_encode(['error' => 'TMDB ID must be between 3 and 8 digits.']);
+    exit;
+}
+
+// duration 
+if ($duration <= 0 || $duration > 600) {
+    http_response_code(422);
+    echo json_encode(['error' => 'Duration must be between 1 and 600 minutes.']);
+    exit;
+}
+
+// poster & backdrop required
+if ($posterPath === '' || $backdropPath === '') {
     http_response_code(422);
     echo json_encode([
-        'error' => 'Required fields (Title, Overview, Year) are missing.'
+        'error' => 'Every movie must have both a Poster and a Backdrop image path.'
     ]);
+    exit;
+}
+
+// empty poster & backdrop
+if (!filter_var($posterPath, FILTER_VALIDATE_URL) && !str_contains($posterPath, 'assets/')) {
+    http_response_code(422);
+    echo json_encode(['error' => 'Invalid Poster path format. Use a URL or local assets path.']);
+    exit;
+}
+
+// range validation
+if ($rating < 0.0 || $rating > 10.0) {
+    http_response_code(422);
+    echo json_encode([
+        'error' => 'Rating must be a value between 0.0 and 10.0.'
+    ]);
+    exit;
+}
+
+// invalidate random typing
+if (!is_numeric($_POST['rating'])) {
+    http_response_code(422);
+    echo json_encode(['error' => 'Rating must be a numeric value.']);
+    exit;
+}
+
+// rating for movies
+$allowedMTRCB = ['G', 'PG', 'R-13', 'R-16', 'R-18'];
+if (!in_array($contentRating, $allowedMTRCB)) {
+    http_response_code(422);
+    echo json_encode([
+        'error' => 'Invalid Rating. Please select a valid MTRCB rating (G, PG, R-13, R-16, or R-18).'
+    ]);
+    exit;
+}
+
+// Language Validation
+if (strlen($language) < 2 || is_numeric($language)) {
+    http_response_code(422);
+    echo json_encode(['error' => 'Please select a valid language.']);
     exit;
 }
 
@@ -46,16 +114,15 @@ $_SESSION['movie_draft'] = [
         'title'          => $title,
         'overview'       => $overview,
         'release_year'   => (int)$releaseYear,
-        'duration'       => (int)$duration,
-        'rating'         => (float)$rating,
+        'duration'       => $duration,
+        'rating'         => $rating,
         'language'       => $language,
         'content_rating' => $contentRating,
-        'type'           => $type,
-        'tmdb_id'        => $tmdbId ?: null,
-        'poster_path'    => $posterPath ?: null,
-        'backdrop_path'  => $backdropPath ?: null
+        'tmdb_id'        => (int)$tmdbId,
+        'poster_path'    => $posterPath,
+        'backdrop_path'  => $backdropPath
     ],
-    // Pre-initialize other keys to prevent 'undefined index' notices in review modal
+    
     'genres'    => [],
     'directors' => [],
     'writers'   => [],

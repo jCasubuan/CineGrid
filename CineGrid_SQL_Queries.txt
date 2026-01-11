@@ -138,6 +138,28 @@ CREATE TABLE movie_reviews (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+UPDATE movies 
+SET content_rating = 'PG' 
+WHERE content_rating = 'PG-13';
+
+UPDATE movies SET rating = 0.0 WHERE rating < 0 OR rating IS NULL;
+UPDATE movies SET rating = 10.0 WHERE rating > 10;
+
+ALTER TABLE movies 
+ADD CONSTRAINT chk_rating_range 
+CHECK (rating >= 0.0 AND rating <= 10.0);
+
+ALTER TABLE movies 
+ADD CONSTRAINT chk_title_min_length CHECK (CHAR_LENGTH(title) >= 2);
+
+ALTER TABLE movies 
+    MODIFY tmdb_id INT NOT NULL,
+    MODIFY duration INT NOT NULL, 
+    MODIFY poster_path VARCHAR(255) NOT NULL,
+    MODIFY backdrop_path VARCHAR(255) NOT NULL,
+    MODIFY content_rating ENUM('G', 'PG', 'R-13', 'R-16', 'R-18') DEFAULT 'PG',
+    DROP COLUMN type;
+
 
 4. ===== Series Table =====
 CREATE TABLE series (

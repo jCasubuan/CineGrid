@@ -106,8 +106,9 @@ Duration: 143
 Rating: 8.0
 Content Rating: PG-13
 Language: English
-Overview: When an unexpected enemy emerges and threatens global safety and security, Nick Fury, director of the international peacekeeping agency known as S.H.I.E.L.D., finds himself in need of a team to pull the world back from the brink of disaster. Spanning the globe, a daring recruitment effort begins!TMDB ID (movie id): 99861
-Poster Path: assets/img/posters/the-avengers-poster.jpg
+Overview: When an unexpected enemy emerges and threatens global safety and security, Nick Fury, director of the international peacekeeping agency known as S.H.I.E.L.D., finds himself in need of a team to pull the world back from the brink of disaster. Spanning the globe, a daring recruitment effort begins!
+TMDB ID (movie id): 24428
+Poster Path: assets/img/posters/the-avengers-poster.webp
 Backdrop Path: assets/img/backdrops/the-avengers-backdrop.webp
 Genre: Action, Adventure, Sci-fi
 Trailer: https://www.youtube.com/watch?v=eOrNdBpGMv8&t=1s
@@ -120,3 +121,132 @@ Chris Hemsworth - Thor Odinson - assets/img/actors/chris-hemsworth.jpg
 Mark Ruffalo - Hulk, Bruce Banner - assets/img/actors/mark-ruffalo.jpg
 Scarlett Johansson - Natasha Romanoff, Black Widow - assets/img/actors/scarlett-johansson.jpg
 Jeremy Renner - Clint Barton, Hawkeye - assets/img/actors/jeremy-renner.jpg
+
+5. Captain America: Civil War
+
+Title: Captain America: Civil War
+Year: 2016
+Duration: 147
+Rating: 7.4
+Content Rating: PG
+Language: English
+TMDB ID (movie id): 271110
+Overview: Following the events of Age of Ultron, the collective governments of the world pass an act designed to regulate all superhuman activity. This polarizes opinion amongst the Avengers, causing two factions to side with Iron Man or Captain America, which causes an epic battle between former allies.
+Poster Path: assets/img/posters/captain-america-civil-war-poster.webp
+Backdrop Path: assets/img/backdrops/captain-america-civil-war-backdrop.webp
+Genre: Action, Adventure, Sci-fi
+Trailer: https://www.youtube.com/watch?v=dKrVegVI0Us
+Directors: Anthony Russo 
+           Joe Russo
+Writers: Christoper Markus
+        Stephen McFeely
+        Joe Simon
+Robert Downey Jr - Iron Man, Tony Stark - assets/img/actors/robert-downey-jr.jpg
+Chris Evans - Captain America, Steve Rogers - assets/img/actors/chris-evans.jpg
+Scarlett Johansson - Natasha Romanoff, Black Widow - assets/img/actors/scarlett-johansson.jpg
+Jeremy Renner - Clint Barton, Hawkeye - assets/img/actors/jeremy-renner.jpg
+Sebastian Stan - Bucky Barnes, Winter Soldier - assets/img/actors/sebastian-stan.jpg
+Anthony Mackie - Sam Wilson, Falcon - assets/img/actors/anthony-mackie.jpg
+
+6. Thor: Ragnarok
+
+Title: Thor: Ragnarok
+Year: 2017
+Duration: 130
+Rating: 7.9
+Content Rating: PG
+Language: English
+TMDB ID (movie id): 284053
+Overview: Thor is imprisoned on the other side of the universe and finds himself in a race against time to get back to Asgard to stop Ragnarok, the destruction of his home-world and the end of Asgardian civilization, at the hands of a powerful new threat, the ruthless Hela.
+Poster Path: assets/img/posters/thor-ragnarok-poster.webp
+Backdrop Path: assets/img/backdrops/thor-ragnarok-backdrop.webp
+Genre: Action, Adventure, Sci-fi
+Trailer: https://www.youtube.com/watch?v=ue80QwXMRHg
+Directors: Taika Waititi 
+Writers: Eric Peerson   
+        Craig Kyle
+        Christopher L. Yost
+Chris Hemsworth - Thor - assets/img/actors/chris-hemsworth.jpg
+Tom Hiddleston - Loki - assets/img/actors/tom-hiddleston.webp
+Cate Blanchett - Hela - assets/img/actors/cate-blanchett.jpg
+Mark Ruffalo - Hulk, Bruce Banner - assets/img/actors/mark-ruffalo.jpg
+Idris Elba - Heimdall - assets/img/actors/idris-elba.jpg
+Tessa Thompson - Valkyrie - assets/img/actors/tessa-thompson.jpg
+
+7. Doctor Strange in the Multiverse of Madness
+
+Title: Doctor Strange in the Multiverse of Madness
+Year: 2022
+Duration: 126
+Rating: 7.2
+Content Rating: R-13
+Language: English
+TMDB ID (movie id): 453395
+Overview: Doctor Strange, with the help of mystical allies both old and new, traverses the mind-bending and dangerous alternate realities of the Multiverse to confront a mysterious new adversary.
+Poster Path: assets/img/posters/doctor-strange-2-poster.webp
+Backdrop Path: assets/img/backdrops/doctor-strange-2-backdrop.webp
+Genre: Action, Adventure, Fantasy
+Trailer: https://www.youtube.com/watch?v=aWzlQ2N6qqg
+Directors: Sam Raimi 
+Writers: Michael Waldron   
+        Stan Lee
+        Steve Ditko
+Benedict Cumberbatch - Doctor Stephen Strange - assets/img/actors/benedict-cumberbatch.jpg
+Elizabeth Olsen - Wanda Maximoff, The Scarlet Witch - assets/img/actors/elizabteh-olsen.jpg
+Chiwetel Ejiofor - Baron Mordo - assets/img/actors/chiwetel-ejiofor.jpg
+Benedict Wong - Wong - assets/img/actors/benedict-wong.jpg
+Xochitl Gomez - America Chavez - assets/img/actors/xochitl-gomez.jpg
+Rachel McAdams - Dr. Christine Palmer - assets/img/actors/rachel-mcadams.jpg
+
+8. Spider-Man: No Way Home
+
+Title: Spider-Man: No Way Home
+Year: 2021
+Duration: 148
+Rating: 8.2
+Content Rating: R-13
+Language: English
+TMDB ID (movie id): 634649
+Overview: Peter Parker is unmasked and no longer able to separate his normal life from the high-stakes of being a super-hero. When he asks for help from Doctor Strange the stakes become even more dangerous, forcing him to discover what it truly means to be Spider-Man.
+Poster Path: assets/img/posters/spider-man-no-way-home-poster.webp
+Backdrop Path: assets/img/backdrops/spider-man-no-way-home-backdrop.webp
+Genre: Action, Adventure, Fantasy
+Trailer: https://www.youtube.com/watch?v=JfVOs4VSpmA
+Directors: Jon Watts 
+Writers: Chris McKenna   
+        Eric Sommers
+        Stan Lee
+Tom Holland - Peter Parker, Spider-Man - assets/img/actors/tom-holland.jpg
+Zendaya - MJ - assets/img/actors/zendaya.webp
+Benedict Cumberbatch - Doctor Stephen Strange - assets/img/actors/benedict-cumberbatch.jpg
+Jacob Batalon - Ned Leeds - assets/img/actors/jacob-batalon.jpg
+Jon Favreau - Happy Hogan - assets/img/actors/jon-favreau.jpg
+Benedict Wong - Wong - assets/img/actors/benedict-wong.jpg
+
+9. Guardians of the Galaxy Vol. 2
+
+Title: Guardians of the Galaxy Vol. 2
+Year: 2017
+Duration: 136
+Rating: 7.6
+Content Rating: R-13
+Language: English
+TMDB ID (movie id): 283995
+Overview: The Guardians must fight to keep their newfound family together as they unravel the mysteries of Peter Quill's true parentage.
+Poster Path: assets/img/posters/gotg-vol-2-poster.webp
+Backdrop Path: assets/img/backdrops/gotg-vol-2-backdrop.webp
+Genre: Action, Adventure, Sci-fi
+Trailer: https://www.youtube.com/watch?v=wUn05hdkhjM
+Directors: James Gunn 
+Writers: James Gunn   
+        Dan Abnett
+        Andy Lanning
+Chris Pratt - Peter Quill, Star-Lord - assets/img/actors/chris-pratt.jpg
+Zoe Saldaña - Gamora - assets/img/actors/zoe-saldaña.jpg
+Dave Bautista - Drax - assets/img/actors/dave-bautista.jpg
+Vin Diesel - Baby Groot (voice) - assets/img/actors/vin-diesel.jpg
+Bradley Cooper - Rocket (voice) - assets/img/actors/bradley-cooper.jpg
+Karen Gillan - Nebula - assets/img/actors/karen-gillan.jpg
+
+
+

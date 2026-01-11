@@ -38,6 +38,24 @@ $popularQuery = "
     LIMIT 4 
 ";
 $featuredResult = $Conn->query($popularQuery);
+
+// for movie being fetured
+$featured_sql = "SELECT m.*, GROUP_CONCAT(g.name SEPARATOR ' • ') as genre_list 
+                 FROM movies m 
+                 LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id
+                 LEFT JOIN genres g ON mg.genre_id = g.genre_id
+                 WHERE m.is_featured = 1 AND m.status = 'active'
+                 GROUP BY m.movie_id 
+                 ORDER BY m.created_at DESC 
+                 LIMIT 5";
+$featured_res = mysqli_query($Conn, $featured_sql);
+
+$featured_movies = [];
+while ($row = mysqli_fetch_assoc($featured_res)) {
+    $featured_movies[] = $row;
+}
+$total_featured = count($featured_movies);
+
 ?>
 
 <!DOCTYPE html>
@@ -48,7 +66,7 @@ $featuredResult = $Conn->query($popularQuery);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="CineGrid - Your ultimate destination for movies, series, and entertainment">
 
-    <title>CineGrid | Home</title>
+    <title>CineGrid</title>
 
     <!-- Site Icon / Logo -->
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
@@ -101,83 +119,53 @@ $featuredResult = $Conn->query($popularQuery);
     <?php include 'includes/navbar.php'; ?>
 
     <!-- Hero Carousel Section -->
-    <section id="featuredSlider" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
-        <!-- Indicators / Bullets -->
+    <?php if ($total_featured > 0): ?>
+    <section id="featuredSlider" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
         <div class="carousel-indicators">
-            <button type="button" data-bs-target="#featuredSlider" data-bs-slide-to="0" class="active" aria-label="Slide 1"></button>
-            <button type="button" data-bs-target="#featuredSlider" data-bs-slide-to="1" aria-label="Slide 2"></button>
-            <button type="button" data-bs-target="#featuredSlider" data-bs-slide-to="2" aria-label="Slide 3"></button>
+            <?php foreach ($featured_movies as $i => $movie): ?>
+                <button type="button" data-bs-target="#featuredSlider" data-bs-slide-to="<?= $i ?>" 
+                        class="<?= $i === 0 ? 'active' : '' ?>" aria-label="Slide <?= $i + 1 ?>"></button>
+            <?php endforeach; ?>
         </div>
 
         <div class="carousel-inner">
-            <!-- Slide 1 -->
-            <div class="carousel-item active hero-slide" style="background-image: url('banner1.jpg');">
-                <div class="hero-overlay">
-                    <div class="container">
-                        <span class="badge bg-warning text-dark mb-3"><i class="bi bi-star-fill"></i> 9.0 IMDb</span>
-                        <h1 class="display-3 fw-bold mb-3">The Dark Knight</h1>
-                        <p class="lead mb-4 text-white-50">Action • Crime • Drama • 2008 • 2h 32m</p>
-                        <p class="lead mb-4" style="max-width: 800px; margin: 0 auto;">
-                            When the menace known as the Joker wreaks havoc on Gotham, Batman must accept one of the greatest tests.
-                        </p>
-                        <div class="d-flex gap-3 justify-content-center">
-                            <a href="movie-details.php" class="btn btn-primary btn-lg px-4">
-                                <i class="bi bi-play-fill me-2"></i>View Details
-                            </a>
-                            <a href="#" class="btn btn-outline-light btn-lg px-4">
-                                <i class="bi bi-plus-lg me-2"></i>Add to Watchlist
-                            </a>
+            <?php foreach ($featured_movies as $index => $movie): ?>
+                <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                    <div class="hero-slide">
+                        <div class="hero-overlay" style="background-image: url('<?= htmlspecialchars($movie['backdrop_path']) ?>');">
+                            
+                            <div class="hero-content-wrapper">
+                                <span class="badge bg-warning text-dark mb-3">
+                                    <i class="bi bi-star-fill"></i> <?= number_format($movie['rating'], 1) ?> Rating
+                                </span>
+                                
+                                <h1 class="display-4 fw-bold text-white mb-2"><?= htmlspecialchars($movie['title']) ?></h1>
+                                
+                                <p class="text-white-50 mb-3">
+                                    <?= htmlspecialchars($movie['genre_list']) ?> • <?= $movie['release_year'] ?>
+                                </p>
+                                
+                                <p class="lead text-white mb-4 opacity-75" style="font-size: 0.95rem;">
+                                    <?= htmlspecialchars(mb_strimwidth($movie['overview'], 0, 160, "...")) ?>
+                                </p>
+                                
+                                <div class="d-flex gap-3">
+                                    <a href="movie-details.php?id=<?= $movie['movie_id'] ?>" class="btn btn-primary px-4 py-2 fw-bold">
+                                        <i class="bi bi-play-fill"></i> View Details
+                                    </a>
+                                    <a href="#" class="btn btn-outline-light px-4 py-2">
+                                        <i class="bi bi-plus-lg"></i> Watchlist
+                                    </a>
+                                </div>
+                            </div>
+                            
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Slide 2 -->
-            <div class="carousel-item hero-slide" style="background-image: url('banner2.jpg');">
-                <div class="hero-overlay">
-                    <div class="container">
-                        <span class="badge bg-success mb-3"><i class="bi bi-tv"></i> Series</span>
-                        <h1 class="display-3 fw-bold mb-3">Breaking Bad</h1>
-                        <p class="lead mb-4 text-white-50">Crime • Drama • Thriller • 2008-2013 • 5 Seasons</p>
-                        <p class="lead mb-4" style="max-width: 800px; margin: 0 auto;">
-                            A chemistry teacher diagnosed with cancer turns to cooking meth to secure his family's future.
-                        </p>
-                        <div class="d-flex gap-3 justify-content-center">
-                            <a href="series-details.php" class="btn btn-primary btn-lg px-4">
-                                <i class="bi bi-info-circle me-2"></i>Learn More
-                            </a>
-                            <a href="#" class="btn btn-outline-light btn-lg px-4">
-                                <i class="bi bi-bookmark me-2"></i>Save
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Slide 3 -->
-            <div class="carousel-item hero-slide" style="background-image: url('banner3.jpg');">
-                <div class="hero-overlay">
-                    <div class="container">
-                        <span class="badge bg-danger mb-3"><i class="bi bi-fire"></i> New Release</span>
-                        <h1 class="display-3 fw-bold mb-3">Dune: Part Two</h1>
-                        <p class="lead mb-4 text-white-50">Sci-Fi • Adventure • Action • 2024 • 2h 46m</p>
-                        <p class="lead mb-4" style="max-width: 800px; margin: 0 auto;">
-                            Paul Atreides unites with Chani and the Fremen while seeking revenge against those who destroyed his family.
-                        </p>
-                        <div class="d-flex gap-3 justify-content-center">
-                            <a href="movie-details.php" class="btn btn-primary btn-lg px-4">
-                                <i class="bi bi-eye me-2"></i>Explore
-                            </a>
-                            <a href="#" class="btn btn-outline-light btn-lg px-4">
-                                <i class="bi bi-share me-2"></i>Share
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <?php endforeach; ?>
         </div>
-
-        <!-- Arrows -->
+        
+        <!-- Previous/Next Navigation Controls -->
         <button class="carousel-control-prev" type="button" data-bs-target="#featuredSlider" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
@@ -187,6 +175,7 @@ $featuredResult = $Conn->query($popularQuery);
             <span class="visually-hidden">Next</span>
         </button>
     </section>
+    <?php endif; ?>
 
     <!-- Main CONTENT -->
     <main>

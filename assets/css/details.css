@@ -100,28 +100,37 @@
     }
 }
 
-/* Hero Banner Section */
+/* === MOVIE DETAILS HERO === */
 .details-hero {
-    height: 40vh;
+    height: 60vh; /* Increased from 40vh to give the 1920x1080 image room to breathe */
     min-height: 550px;
     background-size: cover;
     background-position: center 35%;
     position: relative;
-    margin-top: 0px;
+    overflow: hidden; /* Ensures no overflow issues */
 }
 
 .details-hero-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0; /* Shorthand for top, left, right, bottom: 0 */
     background: linear-gradient(
         to top, 
-        rgba(13, 13, 13, 1) 0%,     /* Solid black at the very bottom */
-        rgba(13, 13, 13, 0.4) 40%,  /* Fades out faster to show more image */
-        rgba(13, 13, 13, 0) 100%    /* Completely transparent at the top */
+        #0d0d0d 0%,            /* Solid background color at bottom */
+        rgba(13, 13, 13, 0.7) 30%, 
+        rgba(13, 13, 13, 0) 60%     /* Middle is clear to see the actors */
+    ),
+    linear-gradient(
+        to right, 
+        rgba(13, 13, 13, 0.8) 0%,   /* Darker on the left where title text usually sits */
+        rgba(13, 13, 13, 0) 50%
     );
+}
+
+@media (max-width: 768px) {
+    .details-hero {
+        height: 40vh; /* Shorter on mobile so users don't have to scroll too much */
+        background-position: center center; /* Keep it centered for mobile portrait views */
+    }
 }
 
 /* Rating Circle */
