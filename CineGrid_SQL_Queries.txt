@@ -1,15 +1,6 @@
 
 CineGrid Website MySQL queries
 
-Note: As you may notice in this file that there are numerous count of tables,
-the reason for that is this project practices "Data Normalization". This process
-of organizing data in a database to reduce redundancy, improve data integrity, and make it more flexible.
-
-P.S. As you can see there are a lot of comments in the code and in this file. Please DO NOT modify anything 
-in the comments, this is to help me remember what that particular code is doing. DO NOT REMOVE ANYTHING
-> Right now, start only with MOVIES. As for series, disregard nio muna, inheritance lang katapat nyan para d na ulit isulat 
-ang code nang paulit ulit.
-
 1. ===== Database ======
 CREATE DATABASE cinegrid_db
 CHARACTER SET utf8mb4
@@ -17,7 +8,7 @@ COLLATE utf8mb4_unicode_ci;
 
 USE cinegrid_db;
 
-2. ====== Users table (Admin + regular users =====
+2. ====== Users table (Admin + regular users) =====
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
@@ -77,10 +68,6 @@ CREATE TABLE movie_directors (
     FOREIGN KEY (director_id) REFERENCES directors(director_id) ON DELETE CASCADE
 );
 
-Why?
-A director can work on many movies
-A movie can have multiple directors
-
 3.5. ===== Actors =====
 CREATE TABLE actors (
     actor_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -100,9 +87,6 @@ CREATE TABLE movie_cast (
     FOREIGN KEY (actor_id) REFERENCES actors(actor_id) ON DELETE CASCADE
 );
 
-Why?
-Actor reuse across movies
-Character name belongs to the relationship, not the actor
 
 3.7 ===== Trailer =====
 CREATE TABLE movie_trailers (
@@ -228,35 +212,101 @@ CREATE TABLE series (
     tmdb_id INT NULL,
     title VARCHAR(255) NOT NULL,
     overview TEXT,
-    first_air_year YEAR,
-    poster_path VARCHAR(255),
-    backdrop_path VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    release_year YEAR,
+    poster_path VARCHAR(255) NOT NULL,
+    backdrop_path VARCHAR(255) NOT NULL,
+    rating DECIMAL(3,1) DEFAULT 0.0,
+    content_rating ENUM('G', 'PG', 'SPG') DEFAULT 'PG',
+    language VARCHAR(50) DEFAULT 'English',
+    status ENUM('Ongoing', 'Ended', 'Cancelled') DEFAULT 'Ongoing',
+    is_featured TINYINT(1) DEFAULT 0,
+    views_count INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT chk_series_rating_range CHECK (rating >= 0.0 AND rating <= 10.0),
+    CONSTRAINT chk_series_title_min_length CHECK (CHAR_LENGTH(title) >= 2)
+) ENGINE=InnoDB;
 
 5. ===== Seasons Table =====
 CREATE TABLE seasons (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    season_id INT AUTO_INCREMENT PRIMARY KEY,
     series_id INT NOT NULL,
     season_number INT NOT NULL,
-    overview TEXT,
-    release_year YEAR,
-    FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE CASCADE
-);
+    title VARCHAR(255) NULL,
+    overview TEXT NULL,
+    release_year YEAR NULL,
+    poster_path VARCHAR(255) NULL,
+    episode_count INT DEFAULT 0,
+    
+    FOREIGN KEY (series_id) REFERENCES series(series_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_season (series_id, season_number)
+) ENGINE=InnoDB;
 
 
-6. ===== Episode Table (For Series only) =====
+6. ===== Episode Table =====
 CREATE TABLE episodes (
     episode_id INT AUTO_INCREMENT PRIMARY KEY,
-    series_id INT NOT NULL,
-    season_number INT NOT NULL,
+    season_id INT NOT NULL,
     episode_number INT NOT NULL,
-    title VARCHAR(255),
+    title VARCHAR(255) NOT NULL,
     overview TEXT,
+    duration INT NOT NULL,
+    release_date DATE,
     still_path VARCHAR(255),
-    air_date DATE,
+    
+    FOREIGN KEY (season_id) REFERENCES seasons(season_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_episode (season_id, episode_number)
+) ENGINE=InnoDB;
+
+
+7. ===== Series Genres ===== 
+CREATE TABLE series_genres (
+    series_id INT NOT NULL,
+    genre_id INT NOT NULL,
+    PRIMARY KEY (series_id, genre_id),
+    FOREIGN KEY (series_id) REFERENCES series(series_id) ON DELETE CASCADE,
+    FOREIGN KEY (genre_id) REFERENCES genres(genre_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+8. ===== Series Directors ===== 
+CREATE TABLE series_directors (
+    series_id INT NOT NULL,
+    director_id INT NOT NULL,
+    PRIMARY KEY (series_id, director_id),
+    FOREIGN KEY (series_id) REFERENCES series(series_id) ON DELETE CASCADE,
+    FOREIGN KEY (director_id) REFERENCES directors(director_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+ALTER TABLE writers ENGINE=InnoDB;
+
+9. ===== Series Writers ===== 
+CREATE TABLE series_writers (
+    series_id INT NOT NULL,
+    writer_id INT NOT NULL,
+    PRIMARY KEY (series_id, writer_id),
+    FOREIGN KEY (series_id) REFERENCES series(series_id) ON DELETE CASCADE,
+    FOREIGN KEY (writer_id) REFERENCES writers(writer_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+10. ===== Series Cast ===== 
+CREATE TABLE series_cast (
+    series_id INT NOT NULL,
+    actor_id INT NOT NULL,
+    character_name VARCHAR(255) NULL,
+    cast_order INT DEFAULT 0,
+    PRIMARY KEY (series_id, actor_id),
+    FOREIGN KEY (series_id) REFERENCES series(series_id) ON DELETE CASCADE,
+    FOREIGN KEY (actor_id) REFERENCES actors(actor_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+11. ===== Series Trailer ===== 
+CREATE TABLE series_trailers (
+    series_id INT PRIMARY KEY,
+    youtube_url VARCHAR(255) NOT NULL,
     FOREIGN KEY (series_id) REFERENCES series(series_id) ON DELETE CASCADE
-);
+) ENGINE=InnoDB;
+
+
 
 7. ===== Ratings Table (Movies + Series) =====
 CREATE TABLE ratings (
