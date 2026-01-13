@@ -160,6 +160,67 @@ ALTER TABLE movies
     MODIFY content_rating ENUM('G', 'PG', 'R-13', 'R-16', 'R-18') DEFAULT 'PG',
     DROP COLUMN type;
 
+=== Activity Log ===
+CREATE TABLE IF NOT EXISTS activity_log (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    action_type ENUM('Added', 'Updated', 'Deleted') NOT NULL,
+    item_type VARCHAR(50) NOT NULL,
+    item_name VARCHAR(255) NOT NULL,
+    user_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+ALTER TABLE movie_cast
+ADD CONSTRAINT fk_movie_cast_movie
+FOREIGN KEY (movie_id)
+REFERENCES movies(movie_id)
+ON DELETE CASCADE;
+
+ALTER TABLE movie_directors
+ADD CONSTRAINT fk_movie_directors_movie
+FOREIGN KEY (movie_id)
+REFERENCES movies(movie_id)
+ON DELETE CASCADE;
+
+ALTER TABLE movie_genres
+ADD CONSTRAINT fk_movie_genres_movie
+FOREIGN KEY (movie_id)
+REFERENCES movies(movie_id)
+ON DELETE CASCADE;
+
+ALTER TABLE movie_trailers
+ADD CONSTRAINT fk_movie_trailers_movie
+FOREIGN KEY (movie_id)
+REFERENCES movies(movie_id)
+ON DELETE CASCADE;
+
+ALTER TABLE movie_writers
+ADD CONSTRAINT fk_movie_writers_movie
+FOREIGN KEY (movie_id)
+REFERENCES movies(movie_id)
+ON DELETE CASCADE;
+
+DELETE FROM movie_reviews;
+DELETE FROM movie_cast;
+DELETE FROM movie_directors;
+DELETE FROM movie_genres;
+DELETE FROM movie_trailers;
+DELETE FROM movie_writers;
+DELETE FROM activity_log;
+
+DELETE FROM movies;
+DELETE FROM actors;
+DELETE FROM directors;
+DELETE FROM writers;
+DELETE FROM genres;
+
+ALTER TABLE movies AUTO_INCREMENT = 1;
+ALTER TABLE actors AUTO_INCREMENT = 1;
+ALTER TABLE directors AUTO_INCREMENT = 1;
+ALTER TABLE writers AUTO_INCREMENT = 1;
+ALTER TABLE genres AUTO_INCREMENT = 1;
+
 
 4. ===== Series Table =====
 CREATE TABLE series (

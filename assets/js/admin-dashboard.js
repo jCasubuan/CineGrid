@@ -124,57 +124,282 @@ class SearchManager {
 // ========================================
 // 4. CRUD OPERATIONS
 // ========================================
-const CrudOperations = {
-    viewMovie(id) {
-        alert(`Viewing movie with ID: ${id}\nThis would open a detailed view or redirect to movie-details.html`);
-    },
 
-    deleteMovie(id) {
-        if (confirm('Are you sure you want to delete this movie?')) {
-            alert(`Movie ${id} deleted!\nIn production, this would make an API call to delete the movie.`);
+/* ===================================
+   DELETE MOVIE FUNCTION
+   =================================== */
+function deleteMovie(movieId, movieTitle) {
+    Swal.fire({
+        title: 'Delete Movie?',
+        html: `Are you sure you want to delete <strong>"${movieTitle}"</strong>?<br><small class="text-danger">This action cannot be undone.</small>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel',
+        background: '#1a1d20',
+        color: '#fff',
+        customClass: {
+            popup: 'border border-secondary'
         }
-    },
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Deleting...',
+                html: 'Please wait while we delete the movie.',
+                allowOutsideClick: false,
+                background: '#1a1d20',
+                color: '#fff',
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
-    viewSeries(id) {
-        alert(`Viewing series with ID: ${id}`);
-    },
-
-    deleteSeries(id) {
-        if (confirm('Are you sure you want to delete this series?')) {
-            alert(`Series ${id} deleted!`);
+            fetch('admin-actions/delete-movie.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `movie_id=${movieId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: data.message,
+                        icon: 'success',
+                        background: '#1a1d20',
+                        color: '#fff',
+                        confirmButtonColor: '#0d6efd'
+                    }).then(() => {
+                        window.location.href = '?section=movies';
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.message,
+                        icon: 'error',
+                        background: '#1a1d20',
+                        color: '#fff',
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while deleting the movie.',
+                    icon: 'error',
+                    background: '#1a1d20',
+                    color: '#fff',
+                    confirmButtonColor: '#d33'
+                });
+            });
         }
-    },
+    });
+}
 
-    viewUser(id) {
-        alert(`Viewing user with ID: ${id}`);
-    },
+/* ===================================
+   EDIT/UPDATE MOVIE FUNCTIONS
+   =================================== */
+function loadEditData(movieId) {
+    const loadingState = document.getElementById('editLoadingState');
+    const editForm = document.getElementById('editMovieForm');
+    const alertDiv = document.getElementById('editMovieAlert');
+    
+    if (loadingState) loadingState.style.display = 'block';
+    if (editForm) editForm.style.display = 'none';
+    if (alertDiv) alertDiv.classList.add('d-none');
 
-    deleteUser(id) {
-        if (confirm('Are you sure you want to delete this user?')) {
-            alert(`User ${id} deleted!`);
-        }
-    },
+    fetch(`admin-actions/get-movie-data.php?movie_id=${movieId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (loadingState) loadingState.style.display = 'none';
+            
+            if (data.success) {
+                populateEditModal(data.movie);
+                if (editForm) editForm.style.display = 'block';
+            } else {
+                showEditAlert(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (loadingState) loadingState.style.display = 'none';
+            showEditAlert('An error occurred while loading movie data.', 'danger');
+        });
+}
 
-    viewReview(id) {
-        alert(`Viewing review with ID: ${id}`);
-    },
-
-    deleteReview(id) {
-        if (confirm('Are you sure you want to delete this review?')) {
-            alert(`Review ${id} deleted!`);
-        }
+function populateEditModal(movie) {
+    // Basic fields
+    document.getElementById('edit_movie_id').value = movie.movie_id;
+    document.getElementById('edit_title').value = movie.title;
+    document.getElementById('edit_overview').value = movie.overview;
+    document.getElementById('edit_release_year').value = movie.release_year;
+    document.getElementById('edit_duration').value = movie.duration;
+    document.getElementById('edit_rating').value = movie.rating;
+    document.getElementById('edit_content_rating').value = movie.content_rating;
+    document.getElementById('edit_language').value = movie.language;
+    document.getElementById('edit_tmdb_id').value = movie.tmdb_id || '';
+    document.getElementById('edit_poster_path').value = movie.poster_path;
+    document.getElementById('edit_backdrop_path').value = movie.backdrop_path;
+    document.getElementById('edit_trailer_url').value = movie.trailer_url || '';
+    document.getElementById('edit_status').value = movie.status;
+    
+    // Genres
+    document.querySelectorAll('[name="genres[]"]').forEach(cb => {
+        cb.checked = movie.genres.includes(cb.value);
+    });
+    
+    // Directors
+    const directorsContainer = document.getElementById('edit_directors_container');
+    directorsContainer.innerHTML = '';
+    movie.directors.forEach(director => {
+        addEditDirectorRow(director);
+    });
+    if (movie.directors.length === 0) {
+        addEditDirectorRow('');
     }
-};
+    
+    // Writers
+    const writersContainer = document.getElementById('edit_writers_container');
+    writersContainer.innerHTML = '';
+    movie.writers.forEach(writer => {
+        addEditWriterRow(writer);
+    });
+    if (movie.writers.length === 0) {
+        addEditWriterRow('');
+    }
+    
+    // Cast
+    const castContainer = document.getElementById('edit_cast_container');
+    castContainer.innerHTML = '';
+    movie.cast.forEach(member => {
+        addEditCastRow(member.actor, member.character, member.image);
+    });
+    if (movie.cast.length === 0) {
+        addEditCastRow('', '', '');
+    }
+}
+
+// Helper functions for dynamic rows
+function addEditDirectorRow(name = '') {
+    const container = document.getElementById('edit_directors_container');
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2 edit-director-row';
+    div.innerHTML = `
+        <input type="text" name="directors[]" class="form-control bg-dark text-white border-secondary" 
+               placeholder="Director name" value="${name}" required>
+        <button type="button" class="btn btn-outline-danger remove-edit-director">
+            <i class="bi bi-x"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function addEditWriterRow(name = '') {
+    const container = document.getElementById('edit_writers_container');
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2 edit-writer-row';
+    div.innerHTML = `
+        <input type="text" name="writers[]" class="form-control bg-dark text-white border-secondary" 
+               placeholder="Writer name" value="${name}" required>
+        <button type="button" class="btn btn-outline-danger remove-edit-writer">
+            <i class="bi bi-x"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function addEditCastRow(actor = '', character = '', image = '') {
+    const container = document.getElementById('edit_cast_container');
+    const div = document.createElement('div');
+    div.className = 'row g-2 mb-2 edit-cast-row';
+    div.innerHTML = `
+        <div class="col-md-4">
+            <input type="text" name="actors[]" class="form-control bg-dark text-white border-secondary" 
+                   placeholder="Actor name" value="${actor}" required>
+        </div>
+        <div class="col-md-4">
+            <input type="text" name="characters[]" class="form-control bg-dark text-white border-secondary" 
+                   placeholder="Character name" value="${character}" required>
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="actor_images[]" class="form-control bg-dark text-white border-secondary" 
+                   placeholder="Image path" value="${image}">
+        </div>
+        <div class="col-md-1 d-grid">
+            <button type="button" class="btn btn-outline-danger remove-edit-cast">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function showEditAlert(message, type) {
+    const alertDiv = document.getElementById('editMovieAlert');
+    if (alertDiv) {
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.textContent = message;
+        alertDiv.classList.remove('d-none');
+    }
+}
+
+function handleEditFormSubmit(e) {
+    e.preventDefault();
+    
+    const updateBtn = document.getElementById('updateMovieBtn');
+    const updateSpinner = document.getElementById('updateMovieSpinner');
+    const updateBtnText = document.getElementById('updateMovieBtnText');
+    
+    if (updateBtn) updateBtn.disabled = true;
+    if (updateSpinner) updateSpinner.classList.remove('d-none');
+    if (updateBtnText) updateBtnText.textContent = 'Saving...';
+    
+    const formData = new FormData(e.target);
+    
+    fetch('admin-actions/update-movie.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (updateBtn) updateBtn.disabled = false;
+        if (updateSpinner) updateSpinner.classList.add('d-none');
+        if (updateBtnText) updateBtnText.textContent = 'Save Changes';
+        
+        if (data.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                background: '#1a1d20',
+                color: '#fff',
+                confirmButtonColor: '#0d6efd'
+            }).then(() => {
+                bootstrap.Modal.getInstance(document.getElementById('editMovieModal')).hide();
+                window.location.href = '?section=movies';
+            });
+        } else {
+            showEditAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        if (updateBtn) updateBtn.disabled = false;
+        if (updateSpinner) updateSpinner.classList.add('d-none');
+        if (updateBtnText) updateBtnText.textContent = 'Save Changes';
+        showEditAlert('An error occurred while updating the movie.', 'danger');
+    });
+}
 
 // Make CRUD functions globally accessible
-window.viewMovie = CrudOperations.viewMovie;
-window.deleteMovie = CrudOperations.deleteMovie;
-window.viewSeries = CrudOperations.viewSeries;
-window.deleteSeries = CrudOperations.deleteSeries;
-window.viewUser = CrudOperations.viewUser;
-window.deleteUser = CrudOperations.deleteUser;
-window.viewReview = CrudOperations.viewReview;
-window.deleteReview = CrudOperations.deleteReview;
+window.deleteMovie = deleteMovie;
+window.loadEditData = loadEditData;
 
 // ========================================
 // 5. FEATURED TOGGLE (No Page Reload)
@@ -715,7 +940,7 @@ document.addEventListener('DOMContentLoaded', () => {
     new DraftCleanup();
 
     // Simple modal forms
-    setupSimpleModalForm('editMovieForm', 'editMovieModal', 'Movie updated successfully!');
+    // setupSimpleModalForm('editMovieForm', 'editMovieModal', 'Movie updated successfully!');
     setupSimpleModalForm('addSeriesForm', 'addSeriesModal', 'Series added successfully!');
     setupSimpleModalForm('editSeriesForm', 'editSeriesModal', 'Series updated successfully!');
     setupSimpleModalForm('addUserForm', 'addUserModal', 'User added successfully!');
@@ -733,6 +958,54 @@ document.addEventListener('DOMContentLoaded', () => {
     // Bootstrap tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+    // Initialize edit form handler
+    const editFormElement = document.getElementById('editMovieForm');
+    if (editFormElement) {
+        editFormElement.addEventListener('submit', handleEditFormSubmit);
+    }
+
+    document.addEventListener('click', function(e) {
+        // Add director
+        if (e.target.id === 'edit_add_director_btn' || e.target.closest('#edit_add_director_btn')) {
+            addEditDirectorRow('');
+        }
+        
+        // Add writer
+        if (e.target.id === 'edit_add_writer_btn' || e.target.closest('#edit_add_writer_btn')) {
+            addEditWriterRow('');
+        }
+        
+        // Add cast
+        if (e.target.id === 'edit_add_cast_btn' || e.target.closest('#edit_add_cast_btn')) {
+            addEditCastRow('', '', '');
+        }
+        
+        // Remove director
+        if (e.target.closest('.remove-edit-director')) {
+            const container = document.getElementById('edit_directors_container');
+            if (container.querySelectorAll('.edit-director-row').length > 1) {
+                e.target.closest('.edit-director-row').remove();
+            }
+        }
+        
+        // Remove writer
+        if (e.target.closest('.remove-edit-writer')) {
+            const container = document.getElementById('edit_writers_container');
+            if (container.querySelectorAll('.edit-writer-row').length > 1) {
+                e.target.closest('.edit-writer-row').remove();
+            }
+        }
+        
+        // Remove cast
+        if (e.target.closest('.remove-edit-cast')) {
+            const container = document.getElementById('edit_cast_container');
+            if (container.querySelectorAll('.edit-cast-row').length > 1) {
+                e.target.closest('.edit-cast-row').remove();
+            }
+        }
+    });
+
 });
 
 // for genre

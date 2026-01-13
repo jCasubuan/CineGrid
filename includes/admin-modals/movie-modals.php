@@ -648,6 +648,33 @@
                                 <option value="inactive">Inactive</option>
                             </select>
                         </div>
+
+                        <!-- Directors -->
+                        <h6 class="border-bottom pb-2 mb-3">Directors</h6>
+                        <div id="edit_directors_container" class="mb-3">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                        <button type="button" class="btn btn-outline-light btn-sm mb-3" id="edit_add_director_btn">
+                            <i class="bi bi-plus-circle me-1"></i>Add Director
+                        </button>
+
+                        <!-- Writers -->
+                        <h6 class="border-bottom pb-2 mb-3">Writers</h6>
+                        <div id="edit_writers_container" class="mb-3">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                        <button type="button" class="btn btn-outline-light btn-sm mb-3" id="edit_add_writer_btn">
+                            <i class="bi bi-plus-circle me-1"></i>Add Writer
+                        </button>
+
+                        <!-- Cast -->
+                        <h6 class="border-bottom pb-2 mb-3">Cast</h6>
+                        <div id="edit_cast_container" class="mb-3">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                        <button type="button" class="btn btn-outline-light btn-sm mb-3" id="edit_add_cast_btn">
+                            <i class="bi bi-plus-circle me-1"></i>Add Cast Member
+                        </button>
                     </form>
                 </div>
                 <div class="modal-footer border-secondary">

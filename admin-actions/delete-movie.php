@@ -27,18 +27,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt1->execute();
         $stmt1->close();
         
+        // Get movie title before deletion (for logging)
+        $title_stmt = $Conn->prepare("SELECT title FROM movies WHERE movie_id = ?");
+        $title_stmt->bind_param('i', $movie_id);
+        $title_stmt->execute();
+        $title_result = $title_stmt->get_result();
+        $movie_title = $title_result->fetch_assoc()['title'];
+        $title_stmt->close();
+
         // Delete the movie
         $stmt2 = $Conn->prepare("DELETE FROM movies WHERE movie_id = ?");
         $stmt2->bind_param('i', $movie_id);
         $stmt2->execute();
         
         if ($stmt2->affected_rows > 0) {
-            $Conn->commit();
-            echo json_encode(['success' => true, 'message' => 'Movie deleted successfully']);
-        } else {
-            $Conn->rollback();
-            echo json_encode(['success' => false, 'message' => 'Movie not found']);
-        }
+        $Conn->commit();
+        
+        // Log activity
+        require_once '../includes/activity-logger.php';
+        logActivity($Conn, 'Deleted', 'Movie', $movie_title, $_SESSION['user_id']);
+        
+        echo json_encode(['success' => true, 'message' => 'Movie deleted successfully']);
+    }
         
         $stmt2->close();
         
