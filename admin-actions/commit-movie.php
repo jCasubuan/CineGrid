@@ -135,6 +135,11 @@ try {
     }
 
     $Conn->commit();
+
+    // Log activity
+    require_once '../includes/activity-logger.php';
+    logActivity($Conn, 'Added', 'Movie', $draft['basic']['title'], $_SESSION['user_id']);
+
     //unset($_SESSION['movie_draft']);
     echo json_encode(['status' => 'success']);
 

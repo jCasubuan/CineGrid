@@ -116,13 +116,22 @@ while ($row = $years_result->fetch_assoc()) {
     $available_years[] = $row['release_year'];
 }
 
-// Recent Activity (for dashboard)
+// Get recent activity from activity log
 $recentActivity = $Conn->query("
-    SELECT title, created_at 
-    FROM movies 
+    SELECT action_type, 
+            item_type, 
+            item_name, 
+            created_at, 
+            user_id
+    FROM activity_log 
     ORDER BY created_at DESC 
     LIMIT $limit OFFSET $offset
 ");
+
+// FIX: Use different variable names for the Activity Log pagination
+$log_res = $Conn->query("SELECT COUNT(*) as count FROM activity_log");
+$total_logs = $log_res->fetch_assoc()['count']; 
+$total_log_pages = ceil($total_logs / $limit);
 ?>
 
 <!DOCTYPE html>
@@ -254,16 +263,45 @@ $recentActivity = $Conn->query("
                         <?php if ($recentActivity->num_rows > 0): ?>
                             <?php while($row = $recentActivity->fetch_assoc()): ?>
                                 <tr>
-                                    <td><span class="badge bg-success">Added</span></td>
-                                    <td><?php echo htmlspecialchars($row['title']); ?></td>
-                                    <td>CineGrid Admin</td>
                                     <td>
                                         <?php 
-                                            // Formats the timestamp to something like "Dec 29, 2025"
+                                        $badgeClass = 'bg-success'; // Default for Added
+                                        if ($row['action_type'] === 'Updated') {
+                                            $badgeClass = 'bg-primary';
+                                        } elseif ($row['action_type'] === 'Deleted') {
+                                            $badgeClass = 'bg-danger';
+                                        }
+                                        ?>
+                                        <span class="badge <?= $badgeClass ?>"><?= htmlspecialchars($row['action_type']); ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-white"><?= htmlspecialchars($row['item_name']); ?></div>
+                                        <small class="text-white-50"><?= htmlspecialchars($row['item_type']); ?></small>
+                                    </td>
+                                    <td>
+                                        <?php
+                                        // Get user name from user_id
+                                        if ($row['user_id']) {
+                                            $user_stmt = $Conn->prepare("SELECT full_name FROM users WHERE id = ?");
+                                            $user_stmt->bind_param('i', $row['user_id']);
+                                            $user_stmt->execute();
+                                            $user_result = $user_stmt->get_result();
+                                            $user = $user_result->fetch_assoc();
+                                            echo htmlspecialchars($user['full_name'] ?? 'Unknown User');
+                                            $user_stmt->close();
+                                        } else {
+                                            echo 'System';
+                                        }
+                                        ?>
+                                    </td>
+                                    <td>
+                                        <?php 
                                             echo date('M d, Y', strtotime($row['created_at'])); 
                                         ?>
                                     </td>
-                                    <td><span class="status-badge status-active">Success</span></td>
+                                    <td>
+                                        <span class="status-badge status-active">Success</span>
+                                    </td>
                                 </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
@@ -275,25 +313,25 @@ $recentActivity = $Conn->query("
                 </table>
             </div> 
             <div class="mt-4 d-flex flex-column align-items-center">
-                <nav aria-label="Page navigation">
+            <nav aria-label="Page navigation">
                     <ul class="pagination pagination-sm mb-2">
                         <li class="page-item <?= ($page <= 1) ? 'disabled' : ''; ?>">
                             <a class="page-link bg-dark border-secondary text-white" href="?page=<?= $page - 1; ?>">Previous</a>
                         </li>
                         
-                        <?php for($i = 1; $i <= $total_pages; $i++): ?>
+                        <?php for($i = 1; $i <= $total_log_pages; $i++): ?>
                             <li class="page-item <?= ($page == $i) ? 'active' : ''; ?>">
                                 <a class="page-link <?= ($page == $i) ? 'bg-primary border-primary' : 'bg-dark border-secondary text-white'; ?>" href="?page=<?= $i; ?>"><?= $i; ?></a>
                             </li>
                         <?php endfor; ?>
 
-                        <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : ''; ?>">
+                        <li class="page-item <?= ($page >= $total_log_pages) ? 'disabled' : ''; ?>">
                             <a class="page-link bg-dark border-secondary text-white" href="?page=<?= $page + 1; ?>">Next</a>
                         </li>
                     </ul>
                 </nav>
                 <small class="text-white-50">
-                    Showing <?= ($offset + 1); ?> to <?= min($offset + $limit, $total_movies); ?> of <?= $total_movies; ?> entries
+                    Showing <?= ($offset + 1); ?> to <?= min($offset + $limit, $total_logs); ?> of <?= $total_logs; ?> entries
                 </small>
             </div>
         </section>
