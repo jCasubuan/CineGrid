@@ -20,20 +20,10 @@ try {
     // Get movie basic info
     $stmt = $Conn->prepare("
         SELECT m.*, 
-               GROUP_CONCAT(DISTINCT g.name) as genres,
-               GROUP_CONCAT(DISTINCT d.name) as directors,
-               GROUP_CONCAT(DISTINCT w.name) as writers,
                mt.youtube_url as trailer_url
         FROM movies m
-        LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id
-        LEFT JOIN genres g ON mg.genre_id = g.genre_id
-        LEFT JOIN movie_directors md ON m.movie_id = md.movie_id
-        LEFT JOIN directors d ON md.director_id = d.director_id
-        LEFT JOIN movie_writers mw ON m.movie_id = mw.movie_id
-        LEFT JOIN writers w ON mw.writer_id = w.writer_id
         LEFT JOIN movie_trailers mt ON m.movie_id = mt.movie_id
         WHERE m.movie_id = ?
-        GROUP BY m.movie_id
     ");
     
     $stmt->bind_param('i', $movie_id);
@@ -47,9 +37,57 @@ try {
     
     $movie = $result->fetch_assoc();
     
+    // Get genres
+    $genres_stmt = $Conn->prepare("
+        SELECT g.name
+        FROM movie_genres mg
+        JOIN genres g ON mg.genre_id = g.genre_id
+        WHERE mg.movie_id = ?
+    ");
+    $genres_stmt->bind_param('i', $movie_id);
+    $genres_stmt->execute();
+    $genres_result = $genres_stmt->get_result();
+    
+    $genres = [];
+    while ($row = $genres_result->fetch_assoc()) {
+        $genres[] = $row['name'];
+    }
+    
+    // Get directors
+    $directors_stmt = $Conn->prepare("
+        SELECT d.name
+        FROM movie_directors md
+        JOIN directors d ON md.director_id = d.director_id
+        WHERE md.movie_id = ?
+    ");
+    $directors_stmt->bind_param('i', $movie_id);
+    $directors_stmt->execute();
+    $directors_result = $directors_stmt->get_result();
+    
+    $directors = [];
+    while ($row = $directors_result->fetch_assoc()) {
+        $directors[] = $row['name'];
+    }
+    
+    // Get writers
+    $writers_stmt = $Conn->prepare("
+        SELECT w.name
+        FROM movie_writers mw
+        JOIN writers w ON mw.writer_id = w.writer_id
+        WHERE mw.movie_id = ?
+    ");
+    $writers_stmt->bind_param('i', $movie_id);
+    $writers_stmt->execute();
+    $writers_result = $writers_stmt->get_result();
+    
+    $writers = [];
+    while ($row = $writers_result->fetch_assoc()) {
+        $writers[] = $row['name'];
+    }
+    
     // Get cast
     $cast_stmt = $Conn->prepare("
-        SELECT a.name as actor, mc.character_name as character, a.image_path as image
+        SELECT a.name as actor, mc.character_name, a.image_path as image
         FROM movie_cast mc
         JOIN actors a ON mc.actor_id = a.actor_id
         WHERE mc.movie_id = ?
@@ -60,7 +98,11 @@ try {
     
     $cast = [];
     while ($row = $cast_result->fetch_assoc()) {
-        $cast[] = $row;
+        $cast[] = [
+            'actor' => $row['actor'],
+            'character' => $row['character_name'],
+            'image' => $row['image']
+        ];
     }
     
     // Format response
@@ -79,9 +121,9 @@ try {
             'poster_path' => $movie['poster_path'],
             'backdrop_path' => $movie['backdrop_path'],
             'status' => $movie['status'],
-            'genres' => $movie['genres'] ? explode(',', $movie['genres']) : [],
-            'directors' => $movie['directors'] ? explode(',', $movie['directors']) : [],
-            'writers' => $movie['writers'] ? explode(',', $movie['writers']) : [],
+            'genres' => $genres,
+            'directors' => $directors,
+            'writers' => $writers,
             'trailer_url' => $movie['trailer_url'],
             'cast' => $cast
         ]

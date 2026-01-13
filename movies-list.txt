@@ -6,10 +6,10 @@ Title: Avengers: Infinity War
 Year: 2018
 Duration: 149
 Rating: 8.4 (or just think what rating you want, it doesn't matter)
-Content Rating: PG-13
+Content Rating: PG
 Language: English
-Overview: As the Avengers and their allies have continued to protect the world from threats too large for any one hero to handle, a new danger has emerged from the cosmic shadows: Thanos. A despot of intergalactic infamy, his goal is to collect all six Infinity Stones, artifacts of unimaginable power, and use them to inflict his twisted will on all of reality. Everything the Avengers have fought for has led up to this moment - the fate of Earth and existence itself has never been more uncertain.
 TMDB ID (movie id): 299536
+Overview: As the Avengers and their allies have continued to protect the world from threats too large for any one hero to handle, a new danger has emerged from the cosmic shadows: Thanos. A despot of intergalactic infamy, his goal is to collect all six Infinity Stones, artifacts of unimaginable power, and use them to inflict his twisted will on all of reality. Everything the Avengers have fought for has led up to this moment - the fate of Earth and existence itself has never been more uncertain.
 Poster Path: assets/img/posters/avengers-infinity-war-poster.jpg
 Backdrop Path: assets/img/backdrops/avengers-infinity-war-backdrop.jpg
 Genre: Action, Adventure, Sci-fi
@@ -53,8 +53,8 @@ Duration: 182
 Rating: 8.5
 Content Rating: PG-13
 Language: English
-Overview: After the devastating events of Avengers: Infinity War, the universe is in ruins due to the efforts of the Mad Titan, Thanos. With the help of remaining allies, the Avengers must assemble once more in order to undo Thanos' actions and restore order to the universe once and for all, no matter what consequences may be in store.
 TMDB ID (movie id): 299534
+Overview: After the devastating events of Avengers: Infinity War, the universe is in ruins due to the efforts of the Mad Titan, Thanos. With the help of remaining allies, the Avengers must assemble once more in order to undo Thanos' actions and restore order to the universe once and for all, no matter what consequences may be in store.
 Poster Path: assets/img/posters/avengers-endgame-poster.webp
 Backdrop Path: assets/img/backdrops/avengers-endgame-backdrop.jpg
 Genre: Action, Adventure, Sci-fi
@@ -248,5 +248,29 @@ Vin Diesel - Baby Groot (voice) - assets/img/actors/vin-diesel.jpg
 Bradley Cooper - Rocket (voice) - assets/img/actors/bradley-cooper.jpg
 Karen Gillan - Nebula - assets/img/actors/karen-gillan.jpg
 
+10. Deadpool & Wolverine
+
+Title: Deadpool & Wolverine
+Year: 2024
+Duration: 128
+Rating: 7.6
+Content Rating: R-16
+Language: English
+TMDB ID (movie id): 533535
+Overview: Deadpool is offered a place in the Marvel Cinematic Universe by the Time Variance Authority, but instead recruits a variant of Wolverine to save his universe from extinction.
+Poster Path: assets/img/posters/deadpool-&-wolverine-poster.jpg
+Backdrop Path: assets/img/backdrops/deadpool-&-wolverine-backdrop.jpg
+Genre: Action, Comedy, Sci-fi
+Trailer: https://www.youtube.com/watch?v=73_1biulkYk&t=2s
+Directors: Shawn Levy 
+Writers: Ryan Reynolds   
+        Rhett Reese
+        Paul Wernick
+Ryan Reynolds - Wade Wilson/Deadpool - assets/img/actors/ryan-reynolds.jpg
+Hugh Jackman - Logan/Wolverine - assets/img/actors/hugh-jackman.jpg
+Emma Corrin - Cassandra Nova - assets/img/actors/emma-corrin.jpg
+Matthew Macfadyen - Mr. Paradox - assets/img/actors/matthew-macfadyen.jpg
+Dafne Keen - Laura/X-23 - assets/img/actors/dafne-keen.jpg
+Jon Favreau - Happy Hogan - assets/img/actors/jon-favreau.jpg
 
 
