@@ -273,4 +273,77 @@ Matthew Macfadyen - Mr. Paradox - assets/img/actors/matthew-macfadyen.jpg
 Dafne Keen - Laura/X-23 - assets/img/actors/dafne-keen.jpg
 Jon Favreau - Happy Hogan - assets/img/actors/jon-favreau.jpg
 
+11. Spider-Man: Homecoming
 
+Title: Spider-Man: Homecoming
+Year: 2017
+Duration: 136
+Rating: 7.4
+Content Rating: R-13
+Language: English
+TMDB ID (movie id): 315635
+Overview: Following the events of Captain America: Civil War, Peter Parker, with the help of his mentor Tony Stark, tries to balance his life as an ordinary high school student in Queens, New York City, with fighting crime as his superhero alter ego Spider-Man as a new threat, the Vulture, emerges.
+Poster Path: assets/img/posters/spider-man-homecoming-poster.webp
+Backdrop Path: assets/img/backdrops/spider-man-homecoming-backdrop.webp
+Genre: Action, Comedy, Sci-fi
+Trailer: https://www.youtube.com/watch?v=DiTECkLZ8HM
+Directors: Jon Watts 
+Writers: Jon Watts
+        Jonathan Goldstein  
+        John Francis Daley
+Tom Holland - Peter Parker, Spider-Man - assets/img/actors/tom-holland.jpg
+Robert Downey Jr - Iron Man, Tony Stark - assets/img/actors/robert-downey-jr.jpg
+Jacob Batalon - Ned Leeds - assets/img/actors/jacob-batalon.jpg
+Marisa Tomei - May Parker - assets/img/actors/marisa-tomei.jpg
+Zendaya - Michelle - assets/img/actors/zendaya.webp
+Jon Favreau - Happy Hogan - assets/img/actors/jon-favreau.jpg
+
+12. Doctor Strange
+
+Title: Doctor Strange
+Year: 2016
+Duration: 115
+Rating: 7.5
+Content Rating: R-13
+Language: English
+TMDB ID (movie id): 28405
+Overview: While on a journey of physical and spiritual healing, a brilliant neurosurgeon is drawn into the world of the mystic arts.
+Poster Path: assets/img/posters/doctor-strange-poster.webp
+Backdrop Path: assets/img/backdrops/doctor-strange-backdrop.webp
+Genre: Action, Adventure, Fantasy
+Trailer: https://www.youtube.com/watch?v=HSzx-zryEgM
+Directors: Scott Derrickson 
+Writers: Jon Spaihts   
+        Scott Derrickson
+        C. Robert Cargill
+Benedict Cumberbatch - Doctor Stephen Strange - assets/img/actors/benedict-cumberbatch.jpg
+Chiwetel Ejiofor - Mordo - assets/img/actors/chiwetel-ejiofor.jpg
+Benedict Wong - Wong - assets/img/actors/benedict-wong.jpg
+Rachel McAdams - Dr. Christine Palmer - assets/img/actors/rachel-mcadams.jpg
+Mads Mikkelsen - Kaecillus - assets/img/actors/mads-mikkelsen.jpg
+Tilda Swinton - The Ancient One - assets/img/actors/tilda-swinton.jpg
+
+13. Guardians of the Galaxy 
+
+Title: Guardians of the Galaxy
+Year: 2014
+Duration: 121
+Rating: 8.0
+Content Rating: R-13
+Language: English
+TMDB ID (movie id): 118340
+Overview: A group of intergalactic criminals must pull together to stop a fanatical warrior with plans to purge the universe
+Poster Path: assets/img/posters/gotg-poster.webp
+Backdrop Path: assets/img/backdrops/gotg-backdrop.jpg
+Genre: Action, Adventure, Sci-fi
+Trailer: https://www.youtube.com/watch?v=d96cjJhvlMA
+Directors: James Gunn 
+Writers: James Gunn   
+        Dan Abnett
+        Nicole Perlman
+Chris Pratt - Peter Quill, Star-Lord - assets/img/actors/chris-pratt.jpg
+Zoe Saldaña - Gamora - assets/img/actors/zoe-saldaña.jpg
+Dave Bautista - Drax - assets/img/actors/dave-bautista.jpg
+Vin Diesel - Groot (voice) - assets/img/actors/vin-diesel.jpg
+Bradley Cooper - Rocket (voice) - assets/img/actors/bradley-cooper.jpg
+Karen Gillan - Nebula - assets/img/actors/karen-gillan.jpg

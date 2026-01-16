@@ -21,8 +21,56 @@
             <a href="#" class="text-white"><i class="bi bi-facebook"></i></a>
             <a href="#" class="text-white"><i class="bi bi-instagram"></i></a>
         </div>
+
+        <!-- Disclaimer Section - Collapsible with Version 1 Formatting -->
+        <div class="border-top border-secondary pt-3 mt-3">
+            <button class="btn btn-link text-white-50 text-decoration-none small p-0 mb-2" 
+                    type="button" 
+                    data-bs-toggle="collapse" 
+                    data-bs-target="#footerDisclaimer" 
+                    aria-expanded="false" 
+                    aria-controls="footerDisclaimer">
+                <i class="bi bi-info-circle me-1"></i> Legal Information & Disclaimer
+                <i class="bi bi-chevron-down ms-1" id="disclaimerChevron"></i>
+            </button>
+            
+            <div class="collapse" id="footerDisclaimer">
+                <div class="pt-2" style="max-width: 800px; margin: 0 auto;">
+                    <p class="text-white-50 small mb-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>Disclaimer:</strong> This website is an independent project and is not affiliated with or endorsed by IMDb or any film studio.
+                    </p>
+                    <p class="text-white-50 small mb-0">
+                        <i class="bi bi-shield-check me-1"></i>
+                        <strong>Copyright Notice:</strong> All movie titles and related factual information are used for informational purposes only. Trademarks belong to their respective owners.
+                    </p>
+                </div>
+            </div>
+        </div>
+
     </div>
 </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const disclaimerCollapse = document.getElementById('footerDisclaimer');
+    const chevron = document.getElementById('disclaimerChevron');
+    
+    if (disclaimerCollapse && chevron) {
+        disclaimerCollapse.addEventListener('show.bs.collapse', function() {
+            chevron.classList.remove('bi-chevron-down');
+            chevron.classList.add('bi-chevron-up');
+        });
+        
+        disclaimerCollapse.addEventListener('hide.bs.collapse', function() {
+            chevron.classList.remove('bi-chevron-up');
+            chevron.classList.add('bi-chevron-down');
+        });
+    }
+});
+
+</script>
+
 <?php endif; ?>
 
 <?php include 'includes/main-modals.php'; ?>
@@ -61,6 +109,8 @@
 
 <?php if ($current_page === 'admin'): ?>
     <script src="assets/js/admin-dashboard.js"></script>
+    <script src="assets/js/movie-validation.js"></script>
+    <script src="assets/js/people-validation.js"></script>
 <?php endif; ?>
 
 <!-- 

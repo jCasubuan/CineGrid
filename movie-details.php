@@ -116,6 +116,65 @@ $fullCastUrl = !empty($movieData['tmdb_id'])
     ? "https://www.themoviedb.org/" . $tmdbType . "/" . $movieData['tmdb_id'] . "/cast"
     : "#";
 
+// Fetch Similar Movies based on genres (RANDOM)
+$similarMovies = [];
+if ($movieData && !empty($movieData['genre_list'])) {
+    $similarQuery = "SELECT DISTINCT m.movie_id, m.title, m.poster_path, m.release_year, m.rating,
+                     GROUP_CONCAT(DISTINCT g.name SEPARATOR ' • ') as genre_names
+                     FROM movies m
+                     LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id
+                     LEFT JOIN genres g ON mg.genre_id = g.genre_id
+                     WHERE m.movie_id != ? 
+                     AND g.name IN (SELECT g2.name 
+                                    FROM movie_genres mg2 
+                                    JOIN genres g2 ON mg2.genre_id = g2.genre_id 
+                                    WHERE mg2.movie_id = ?)
+                     GROUP BY m.movie_id
+                     ORDER BY RAND()
+                     LIMIT 4";
+    
+    $stmtSimilar = $Conn->prepare($similarQuery);
+    $stmtSimilar->bind_param("ii", $movieId, $movieId);
+    $stmtSimilar->execute();
+    $similarResult = $stmtSimilar->get_result();
+    
+    while($row = $similarResult->fetch_assoc()) {
+        $similarMovies[] = $row;
+    }
+    $stmtSimilar->close();
+    
+    // If we don't have enough similar movies (less than 4), fill with completely random movies
+    if (count($similarMovies) < 4) {
+        $remaining = 4 - count($similarMovies);
+        $existingIds = array_column($similarMovies, 'movie_id');
+        $existingIds[] = $movieId; // Exclude current movie
+        
+        $placeholders = str_repeat('?,', count($existingIds) - 1) . '?';
+        
+        $randomQuery = "SELECT m.movie_id, m.title, m.poster_path, m.release_year, m.rating,
+                        GROUP_CONCAT(DISTINCT g.name SEPARATOR ' • ') as genre_names
+                        FROM movies m
+                        LEFT JOIN movie_genres mg ON m.movie_id = mg.movie_id
+                        LEFT JOIN genres g ON mg.genre_id = g.genre_id
+                        WHERE m.movie_id NOT IN ($placeholders)
+                        GROUP BY m.movie_id
+                        ORDER BY RAND()
+                        LIMIT ?";
+        
+        $stmtRandom = $Conn->prepare($randomQuery);
+        $types = str_repeat('i', count($existingIds)) . 'i';
+        $params = array_merge($existingIds, [$remaining]);
+        $stmtRandom->bind_param($types, ...$params);
+        $stmtRandom->execute();
+        $randomResult = $stmtRandom->get_result();
+        
+        while($row = $randomResult->fetch_assoc()) {
+            $similarMovies[] = $row;
+        }
+        $stmtRandom->close();
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -431,75 +490,42 @@ $fullCastUrl = !empty($movieData['tmdb_id'])
         <!-- Similar Movies Section -->
         <section class="mb-5">
             <h3 class="mb-4"><i class="bi bi-film me-2"></i>More Like This</h3>
-            <div class="row row-cols-2 row-cols-md-4 g-4">
-                <!-- Similar Movie 1 -->
-                <div class="col">
-                    <a href="movie-details.php" class="text-decoration-none">
-                        <div class="card media-card bg-dark text-white position-relative">
-                            <img src="https://via.placeholder.com/300x450/667eea/ffffff?text=Batman+Begins" 
-                                 class="card-img-top" alt="Batman Begins">
-                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                <i class="bi bi-star-fill"></i> 8.2
-                            </span>
-                            <div class="card-body">
-                                <h5 class="card-title">Batman Begins</h5>
-                                <p class="card-text text-white">Action • 2005</p>
-                            </div>
+            
+            <?php if (!empty($similarMovies)): ?>
+                <div class="row row-cols-2 row-cols-md-4 g-4">
+                    <?php foreach($similarMovies as $similar): 
+                        $posterPath = !empty($similar['poster_path']) ? $similar['poster_path'] : 'assets/img/no-poster.jpg';
+                        $genres = !empty($similar['genre_names']) ? explode(' • ', $similar['genre_names'])[0] : 'N/A';
+                    ?>
+                        <div class="col">
+                            <a href="movie-details.php?id=<?= $similar['movie_id']; ?>" class="text-decoration-none">
+                                <div class="card media-card bg-dark text-white position-relative">
+                                    <img src="<?= htmlspecialchars($posterPath); ?>" 
+                                        class="card-img-top" 
+                                        alt="<?= htmlspecialchars($similar['title']); ?>"
+                                        style="height: 350px; object-fit: cover;">
+                                    <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
+                                        <i class="bi bi-star-fill"></i> <?= number_format($similar['rating'], 1); ?>
+                                    </span>
+                                    <div class="card-body">
+                                        <h5 class="card-title text-truncate" title="<?= htmlspecialchars($similar['title']); ?>">
+                                            <?= htmlspecialchars($similar['title']); ?>
+                                        </h5>
+                                        <p class="card-text text-white-50">
+                                            <?= htmlspecialchars($genres); ?> • <?= $similar['release_year']; ?>
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
                         </div>
-                    </a>
+                    <?php endforeach; ?>
                 </div>
-
-                <!-- Similar Movie 2 -->
-                <div class="col">
-                    <a href="movie-details.php" class="text-decoration-none">
-                        <div class="card media-card bg-dark text-white position-relative">
-                            <img src="https://via.placeholder.com/300x450/764ba2/ffffff?text=Inception" 
-                                 class="card-img-top" alt="Inception">
-                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                <i class="bi bi-star-fill"></i> 8.8
-                            </span>
-                            <div class="card-body">
-                                <h5 class="card-title">Inception</h5>
-                                <p class="card-text text-white">Sci-Fi • 2010</p>
-                            </div>
-                        </div>
-                    </a>
+            <?php else: ?>
+                <div class="text-center text-white-50 py-5">
+                    <i class="bi bi-film fs-1 d-block mb-3"></i>
+                    <p>No similar movies found at the moment.</p>
                 </div>
-
-                <!-- Similar Movie 3 -->
-                <div class="col">
-                    <a href="movie-details.php" class="text-decoration-none">
-                        <div class="card media-card bg-dark text-white position-relative">
-                            <img src="https://via.placeholder.com/300x450/4ecdc4/ffffff?text=The+Prestige" 
-                                 class="card-img-top" alt="The Prestige">
-                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                <i class="bi bi-star-fill"></i> 8.5
-                            </span>
-                            <div class="card-body">
-                                <h5 class="card-title">The Prestige</h5>
-                                <p class="card-text text-white">Mystery • 2006</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Similar Movie 4 -->
-                <div class="col">
-                    <a href="movie-details.php" class="text-decoration-none">
-                        <div class="card media-card bg-dark text-white position-relative">
-                            <img src="https://via.placeholder.com/300x450/ff6b6b/ffffff?text=Joker" 
-                                 class="card-img-top" alt="Joker">
-                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                <i class="bi bi-star-fill"></i> 8.4
-                            </span>
-                            <div class="card-body">
-                                <h5 class="card-title">Joker</h5>
-                                <p class="card-text text-white">Crime • 2019</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
+            <?php endif; ?>
         </section>
     </main>
 
