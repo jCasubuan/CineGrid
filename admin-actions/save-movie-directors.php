@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/init.php';
+require_once '../includes/validate-people.php';
 
 if (
     empty($_SESSION['user_id']) ||
@@ -39,6 +40,13 @@ foreach ($directors as $name) {
 
     if ($name === '') {
         continue;
+    }
+
+    $validation = isValidPersonName($name, 'Director');
+    if (!$validation['valid']) {
+        http_response_code(422);
+        echo json_encode(['error' => $validation['error']]);
+        exit;
     }
 
     if (strlen($name) > 255) {

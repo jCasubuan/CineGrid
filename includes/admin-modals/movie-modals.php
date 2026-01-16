@@ -25,30 +25,51 @@
                                     class="form-control bg-dark text-white border-secondary" 
                                     placeholder="e.g., The Dark Knight"
                                     minlength="2"
+                                    pattern="^[A-Za-z0-9\s\-:,.'&!?()]+$"
+                                    title="Please enter a valid movie title (letters, numbers, and common punctuation only)"
                                     value="<?php echo $_SESSION['movie_draft']['basic']['title'] ?? ''; ?>"
                                     required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid movie title using letters, numbers, and common punctuation.
+                                </div>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Release Year *</label>
                                 <input type="number" 
+                                    id="releaseYear"
                                     name="release_year" 
                                     class="form-control bg-dark text-white border-secondary" 
                                     min="1888" 
                                     max="2026" 
                                     placeholder="2026"
+                                    step="1"
+                                    oninput="if(this.value.length > 4) this.value = this.value.slice(0,4);"
+                                    pattern="\d{4}"
+                                    title="Please enter a valid 4-digit year"
                                     value="<?php echo $_SESSION['movie_draft']['basic']['release_year'] ?? ''; ?>"
                                     required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid 4-digit year between 1888 and 2026.
+                                </div>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label text-white-50">Duration (Minutes)*</label>
                                 <input type="number" 
+                                    id="movieDuration"
                                     name="duration" 
                                     class="form-control bg-dark text-white border-secondary" 
                                     placeholder="e.g., 149"
                                     min="1"
+                                    max="1440"
+                                    step="1"
+                                    oninput="if(this.value < 0) this.value = Math.abs(this.value); if(this.value > 1440) this.value = 1440;"
+                                    title="Duration must be between 1 and 1440 minutes (24 hours max)"
                                     value="<?php echo $_SESSION['movie_draft']['basic']['duration'] ?? ''; ?>"
                                     required>
-                                <small class="text-secondary">149 = 2h 29m</small>
+                                <div class="invalid-feedback">
+                                    Duration must be between 1 and 1440 minutes.
+                                </div>
+                                <small class="text-secondary" id="durationHelper">149 = 2h 29m</small>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label text-white-50">Rating (0-10) *</label>
@@ -91,11 +112,21 @@
                                 <label class="form-label">TMDB ID *</label>
                                 <input 
                                     type="number" 
+                                    id="tmdbId"
                                     name="tmdb_id" 
                                     class="form-control bg-dark text-white border-secondary" 
                                     placeholder="e.g. 634649" 
+                                    min="1"
+                                    step="1"
+                                    oninput="if(this.value < 0) this.value = Math.abs(this.value); if(this.value.length > 8) this.value = this.value.slice(0,8);"
+                                    pattern="^\d{1,8}$"
+                                    title="TMDB ID must be between 1 and 8 digits"
                                     value="<?php echo $_SESSION['movie_draft']['basic']['tmdb_id'] ?? ''; ?>"
-                                    required>                          
+                                    required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid TMDB ID (1-8 digits).
+                                </div>
+                                <small class="text-secondary">Find the ID on <a href="https://www.themoviedb.org/" target="_blank" class="text-info">themoviedb.org</a></small>
                             </div>
                         </div>
 
@@ -116,26 +147,36 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Poster Path/URL *</label>
                                 <input type="text" 
+                                    id="posterPath"
                                     name="poster_path" 
-                                    class="form-control" 
-                                    placeholder="/poster/movie-poster.jpg"
+                                    class="form-control bg-dark text-white border-secondary" 
+                                    placeholder="/poster/movie-poster.jpg or https://example.com/image.jpg"
                                     autocomplete="off"
-                                    value="<?php echo $_SESSION['movie_draft']['basic']['poster_path'] ?? ''; ?>"
-                                    required
-                                >
-                                <small class="text-white">Relative path or full URL</small>
+                                    pattern="^(https?:\/\/.+\.(jpg|jpeg|png|webp|gif)|\/.*\.(jpg|jpeg|png|webp|gif)|assets\/.+\.(jpg|jpeg|png|webp|gif))$"
+                                    title="Must be a valid image path (.jpg, .jpeg, .png, .webp, .gif)"
+                                    value="<?php echo htmlspecialchars($_SESSION['movie_draft']['basic']['poster_path'] ?? ''); ?>"
+                                    required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid image path or URL (.jpg, .jpeg, .png, .webp, .gif)
+                                </div>
+                                <small class="text-secondary">Relative path or full URL (jpg, png, webp)</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Backdrop Path/URL *</label>
                                 <input type="text" 
+                                    id="backdropPath"
                                     name="backdrop_path" 
-                                    class="form-control" 
-                                    placeholder="/backdrop/movie-backdrop.jpg"
+                                    class="form-control bg-dark text-white border-secondary" 
+                                    placeholder="/backdrop/movie-backdrop.jpg or https://example.com/image.jpg"
                                     autocomplete="off"
-                                    value="<?php echo $_SESSION['movie_draft']['basic']['backdrop_path'] ?? ''; ?>"
-                                    required
-                                >
-                                <small class="text-white">Relative path or full URL</small>
+                                    pattern="^(https?:\/\/.+\.(jpg|jpeg|png|webp|gif)|\/.*\.(jpg|jpeg|png|webp|gif)|assets\/.+\.(jpg|jpeg|png|webp|gif))$"
+                                    title="Must be a valid image path (.jpg, .jpeg, .png, .webp, .gif)"
+                                    value="<?php echo htmlspecialchars($_SESSION['movie_draft']['basic']['backdrop_path'] ?? ''); ?>"
+                                    required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid image path or URL (.jpg, .jpeg, .png, .webp, .gif)
+                                </div>
+                                <small class="text-secondary">Relative path or full URL (jpg, png, webp)</small>
                             </div>
                         </div>
 
@@ -292,7 +333,14 @@
                                     class="form-control bg-dark text-white border-secondary" 
                                     placeholder="Director name" 
                                     value="<?= htmlspecialchars($name) ?>" 
+                                    minlength="2"
+                                    maxlength="100"
+                                    pattern="^[A-Za-zÀ-ÿ\s\-'\.]+$"
+                                    title="Enter a valid director name"
                                     required>
+                                    <div class="invalid-feedback">
+                                        Please enter a valid director name.
+                                    </div>
                                 <button type="button" class="btn btn-outline-danger remove-director">
                                     <i class="bi bi-x"></i>
                                 </button>
@@ -355,7 +403,11 @@
                                     name="writers[]" 
                                     class="form-control bg-dark text-white border-secondary" 
                                     placeholder="Writer name (e.g., Jonathan Nolan)" 
-                                    value="<?= htmlspecialchars($name) ?>" 
+                                    value="<?= htmlspecialchars($name) ?>"
+                                    minlength="2"
+                                    maxlength="100"
+                                    pattern="^[A-Za-zÀ-ÿ\s\-'\.]+$"
+                                    title="Enter a valid writer name" 
                                     required>
                                 <button type="button" class="btn btn-outline-danger remove-writer">
                                     <i class="bi bi-x"></i>
@@ -413,16 +465,34 @@
                             ?>
                             <div class="row g-2 mb-2 cast-row">
                                 <div class="col-md-4">
-                                    <input type="text" name="actors[]" class="form-control bg-dark text-white border-secondary" 
-                                        placeholder="Actor name" value="<?= htmlspecialchars($member['actor']) ?>" required>
+                                    <input type="text" 
+                                        name="actors[]" 
+                                        class="form-control bg-dark text-white border-secondary" 
+                                        placeholder="Actor name" 
+                                        value="<?= htmlspecialchars($member['actor']) ?>"
+                                        minlength="2"
+                                        maxlength="100"
+                                        pattern="^[A-Za-zÀ-ÿ\s\-'\.]+$"
+                                        title="Enter a valid actor name" 
+                                        required>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="text" name="characters[]" class="form-control bg-dark text-white border-secondary" 
-                                        placeholder="Character name" value="<?= htmlspecialchars($member['character']) ?>" required>
+                                    <input type="text" 
+                                        name="characters[]" 
+                                        class="form-control bg-dark text-white border-secondary" 
+                                        placeholder="Character name" 
+                                        value="<?= htmlspecialchars($member['character']) ?>" 
+                                        minlength="2"
+                                        maxlength="100"
+                                        required>
+                                        
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="text" name="actor_images[]" class="form-control bg-dark text-white border-secondary" 
-                                        placeholder="Image path" value="<?= htmlspecialchars($member['image']) ?>">
+                                    <input type="text" 
+                                        name="actor_images[]" 
+                                        class="form-control bg-dark text-white border-secondary" 
+                                        placeholder="Image path" 
+                                        value="<?= htmlspecialchars($member['image']) ?>">
                                 </div>
                                 <div class="col-md-1 d-grid">
                                     <button type="button" class="btn btn-outline-danger remove-cast">

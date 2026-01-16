@@ -1,6 +1,210 @@
 <!-- PHP connection -->
 <?php
 require_once 'includes/init.php';
+
+// 1. Get Series ID from URL
+$series_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+if ($series_id <= 0) {
+    header('Location: index.php');
+    exit;
+}
+
+// 2. Fetch Series Basic Info + Trailer
+$stmt = $Conn->prepare("
+    SELECT s.*, st.youtube_url as trailer_url
+    FROM series s
+    LEFT JOIN series_trailers st ON s.series_id = st.series_id
+    WHERE s.series_id = ?
+");
+$stmt->bind_param('i', $series_id);
+$stmt->execute();
+$series = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if (!$series) {
+    header('Location: index.php?error=not_found');
+    exit;
+}
+
+// 3. Update view count
+$Conn->query("UPDATE series SET views_count = views_count + 1 WHERE series_id = $series_id");
+
+// 4. Fetch Genres
+$genres = [];
+$stmt = $Conn->prepare("
+    SELECT g.name 
+    FROM series_genres sg 
+    JOIN genres g ON sg.genre_id = g.genre_id 
+    WHERE sg.series_id = ?
+");
+$stmt->bind_param('i', $series_id);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $genres[] = $row['name'];
+}
+$stmt->close();
+
+// 5. Fetch Directors
+$directors = [];
+$stmt = $Conn->prepare("
+    SELECT d.name 
+    FROM series_directors sd 
+    JOIN directors d ON sd.director_id = d.director_id 
+    WHERE sd.series_id = ?
+");
+$stmt->bind_param('i', $series_id);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $directors[] = $row['name'];
+}
+$stmt->close();
+
+// 6. Fetch Writers
+$writers = [];
+$stmt = $Conn->prepare("
+    SELECT w.name 
+    FROM series_writers sw 
+    JOIN writers w ON sw.writer_id = w.writer_id 
+    WHERE sw.series_id = ?
+");
+$stmt->bind_param('i', $series_id);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $writers[] = $row['name'];
+}
+$stmt->close();
+
+// 7. Fetch Cast
+$cast = [];
+$stmt = $Conn->prepare("
+    SELECT a.name as actor, a.image_path, sc.character_name, sc.cast_order
+    FROM series_cast sc 
+    JOIN actors a ON sc.actor_id = a.actor_id 
+    WHERE sc.series_id = ? 
+    ORDER BY sc.cast_order ASC 
+    LIMIT 6
+");
+$stmt->bind_param('i', $series_id);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $cast[] = $row;
+}
+$stmt->close();
+
+// 8. Fetch Seasons with Episodes
+$seasons = [];
+$stmt = $Conn->prepare("
+    SELECT * 
+    FROM seasons 
+    WHERE series_id = ? 
+    ORDER BY season_number ASC
+");
+$stmt->bind_param('i', $series_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+while ($seasonRow = $result->fetch_assoc()) {
+    $season_id = $seasonRow['season_id'];
+    
+    // Get episodes for this season
+    $epStmt = $Conn->prepare("
+        SELECT * 
+        FROM episodes 
+        WHERE season_id = ? 
+        ORDER BY episode_number ASC
+    ");
+    $epStmt->bind_param('i', $season_id);
+    $epStmt->execute();
+    $epResult = $epStmt->get_result();
+    
+    $episodes = [];
+    while ($epRow = $epResult->fetch_assoc()) {
+        $episodes[] = $epRow;
+    }
+    $epStmt->close();
+    
+    $seasonRow['episodes'] = $episodes;
+    $seasons[] = $seasonRow;
+}
+$stmt->close();
+
+// 9. Calculate total episodes
+$total_episodes = 0;
+foreach ($seasons as $season) {
+    $total_episodes += count($season['episodes']);
+}
+
+// 10. Get average episode duration (from first episode)
+$avg_duration = 0;
+if (!empty($seasons) && !empty($seasons[0]['episodes'])) {
+    $durations = array_column($seasons[0]['episodes'], 'duration');
+    $avg_duration = !empty($durations) ? (int)(array_sum($durations) / count($durations)) : 0;
+}
+
+// 11. Calculate year range
+$year_range = $series['release_year'];
+if ($series['status'] === 'Ended' || $series['status'] === 'Cancelled') {
+    $last_season = end($seasons);
+    if ($last_season && $last_season['release_year']) {
+        $year_range .= '-' . $last_season['release_year'];
+    }
+}
+
+// 12. Fetch Similar Series (same genres, exclude current)
+$similar_series = [];
+if (!empty($genres)) {
+    $genre_list = "'" . implode("','", array_map([$Conn, 'real_escape_string'], $genres)) . "'";
+    $similar_query = "
+        SELECT DISTINCT s.*, GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ') as genre_names
+        FROM series s
+        JOIN series_genres sg ON s.series_id = sg.series_id
+        JOIN genres g ON sg.genre_id = g.genre_id
+        WHERE g.name IN ($genre_list)
+        AND s.series_id != $series_id
+        GROUP BY s.series_id
+        ORDER BY s.rating DESC
+        LIMIT 4
+    ";
+    $similar_result = $Conn->query($similar_query);
+    while ($row = $similar_result->fetch_assoc()) {
+        $similar_series[] = $row;
+    }
+}
+
+// 13. Format YouTube URL for embed
+$youtube_embed = '';
+if (!empty($series['trailer_url'])) {
+    // Extract video ID from various YouTube URL formats
+    $video_id = '';
+    if (preg_match('/youtube\.com\/watch\?v=([^\&\?\/]+)/', $series['trailer_url'], $id)) {
+        $video_id = $id[1];
+    } else if (preg_match('/youtube\.com\/embed\/([^\&\?\/]+)/', $series['trailer_url'], $id)) {
+        $video_id = $id[1];
+    } else if (preg_match('/youtu\.be\/([^\&\?\/]+)/', $series['trailer_url'], $id)) {
+        $video_id = $id[1];
+    }
+    
+    if ($video_id) {
+        $youtube_embed = "https://www.youtube.com/embed/$video_id";
+    }
+}
+
+// 14. Calculate rating percentage for circular progress
+$rating_percentage = ($series['rating'] / 10) * 100;
+
+$seriesId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$seriesData = null;
+
+$tmdbType = 'tv';
+
+$fullCastUrl = !empty($series['tmdb_id']) 
+    ? "https://www.themoviedb.org/" . $tmdbType . "/" . $series['tmdb_id'] . "/cast"
+    : "#";
 ?>
 
 <!DOCTYPE html>
@@ -9,8 +213,8 @@ require_once 'includes/init.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Watch and review Series on CineGrid">
-    <title>Breaking Bad (2008-2013) | CineGrid</title>
+    <meta name="description" content="<?= htmlspecialchars(substr($series['overview'], 0, 155)); ?>">
+    <title><?= htmlspecialchars($series['title']); ?> (<?= $year_range; ?>) | CineGrid</title>
 
     <!-- Site Icon / Logo -->
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
@@ -22,8 +226,7 @@ require_once 'includes/init.php';
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 
     <!-- Boostrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
-        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- CineGrid base styles -->
     <link rel="stylesheet" href="assets/css/main.css">
@@ -34,15 +237,15 @@ require_once 'includes/init.php';
 </head>
 
 <body data-type="series">
-    <!-- Banner for admin browsing pagaes -->
+    <!-- Banner for admin browsing pages -->
     <?php include 'includes/admin-banner.php'; ?>
 
-    <!-- for PHP -->
+    <!-- Navbar -->
     <?php include 'includes/navbar.php'; ?>
 
     <!-- HERO BANNER -->
     <section class="details-hero"
-        style="background-image: url('https://via.placeholder.com/1920x1080/1a1a2e/667eea?text=Breaking+Bad+Banner');">
+        style="background-image: url('<?= htmlspecialchars($series['backdrop_path']); ?>');">
         <div class="details-hero-overlay"></div>
     </section>
 
@@ -51,57 +254,74 @@ require_once 'includes/init.php';
         <div class="row">
             <!-- Series Poster (Floating) -->
             <div class="col-12 col-md-3">
-                <img src="https://via.placeholder.com/300x450/667eea/ffffff?text=Breaking+Bad"
-                    class="img-fluid floating-poster" alt="Breaking Bad">
+                <img src="<?= htmlspecialchars($series['poster_path']); ?>"
+                    class="img-fluid floating-poster" 
+                    alt="<?= htmlspecialchars($series['title']); ?>"
+                    onerror="this.src='assets/img/no-poster.jpg'">
             </div>
 
             <!-- Series Information -->
             <div class="col-12 col-md-9 mt-4 mt-md-0">
                 <!-- Title & Meta -->
                 <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
-                    <h1 class="display-5 fw-bold mb-0">Breaking Bad</h1>
+                    <h1 class="display-5 fw-bold mb-0"><?= htmlspecialchars($series['title']); ?></h1>
                     <span class="badge bg-success fs-6"><i class="bi bi-tv"></i> TV Series</span>
-                    <span class="badge bg-warning text-dark fs-6">TV-MA</span>
+                    <span class="badge bg-warning text-dark fs-6"><?= htmlspecialchars($series['content_rating']); ?></span>
+                    <?php if ($series['status'] !== 'Ongoing'): ?>
+                        <span class="badge bg-danger fs-6"><?= htmlspecialchars($series['status']); ?></span>
+                    <?php endif; ?>
                 </div>
 
                 <p class="text-white mb-4">
-                    <i class="bi bi-calendar3 me-1"></i> 2008-2013
+                    <i class="bi bi-calendar3 me-1"></i> <?= $year_range; ?>
                     <span class="mx-2">•</span>
-                    <i class="bi bi-collection-play me-1"></i> 5 Seasons, 62 Episodes
-                    <span class="mx-2">•</span>
-                    <i class="bi bi-clock me-1"></i> 47min per episode
+                    <i class="bi bi-collection-play me-1"></i> <?= count($seasons); ?> Season<?= count($seasons) != 1 ? 's' : ''; ?>, <?= $total_episodes; ?> Episodes
+                    <?php if ($avg_duration > 0): ?>
+                        <span class="mx-2">•</span>
+                        <i class="bi bi-clock me-1"></i> <?= $avg_duration; ?>min per episode
+                    <?php endif; ?>
                 </p>
 
                 <!-- Genres -->
+                <?php if (!empty($genres)): ?>
                 <div class="mb-4">
-                    <span class="tag"><i class="bi bi-tag-fill me-1"></i>Crime</span>
-                    <span class="tag"><i class="bi bi-tag-fill me-1"></i>Drama</span>
-                    <span class="tag"><i class="bi bi-tag-fill me-1"></i>Thriller</span>
+                    <?php foreach ($genres as $genre): ?>
+                        <span class="tag"><i class="bi bi-tag-fill me-1"></i><?= htmlspecialchars($genre); ?></span>
+                    <?php endforeach; ?>
                 </div>
+                <?php endif; ?>
 
                 <!-- Rating & Actions -->
                 <div class="row g-3 mb-4">
                     <div class="col-auto">
-                        <div class="rating-circle" style="background: conic-gradient(#4caf50 0% 92%, #ddd 92% 100%);">
-                            <span class="rating-value">9.5</span>
+                        <div class="rating-circle" style="background: conic-gradient(#4caf50 0% <?= $rating_percentage; ?>%, #ddd <?= $rating_percentage; ?>% 100%);">
+                            <span class="rating-value"><?= number_format($series['rating'], 1); ?></span>
                         </div>
-                        <small class="d-block text-center mt-2 text-white">IMDb Rating</small>
+                        <small class="d-block text-center mt-2 text-white">IMDB Rating</small>
                     </div>
 
                     <div class="col">
                         <div class="d-flex flex-wrap gap-2">
-                            <a href="#trailer-section" class="btn btn-primary action-btn">
-                                <i class="bi bi-play-fill me-2"></i>Watch Trailer
-                            </a>
-                            <button class="btn btn-outline-light">
-                                <i class="bi bi-bookmark me-2"></i>Add to Watchlist
-                            </button>
-                            <button class="btn btn-outline-light">
-                                <i class="bi bi-heart me-2"></i>Favorite
-                            </button>
-                            <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#ratingModal">
-                                <i class="bi bi-star me-2"></i>Rate
-                            </button>
+                            <?php if (!empty($youtube_embed)): ?>
+                                <a href="#trailer-section" class="btn btn-primary action-btn">
+                                    <i class="bi bi-play-fill me-2"></i>Watch Trailer
+                                </a>
+                            <?php endif; ?>
+                            <?php if (!empty($_SESSION['user_id'])): ?>
+                                <button class="btn btn-outline-light">
+                                    <i class="bi bi-bookmark me-2"></i>Add to Watchlist
+                                </button>
+                                <button class="btn btn-outline-light">
+                                    <i class="bi bi-heart me-2"></i>Favorite
+                                </button>
+                                <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#ratingModal">
+                                    <i class="bi bi-star me-2"></i>Rate
+                                </button>
+                            <?php else: ?>
+                                <a href="login.php" class="btn btn-outline-light">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Login to Rate
+                                </a>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -110,518 +330,210 @@ require_once 'includes/init.php';
                 <div class="d-flex flex-wrap gap-3 mb-4">
                     <div class="stat-badge">
                         <i class="bi bi-eye me-2"></i>
-                        <strong>5.2M</strong> <small class="text-white">Views</small>
+                        <strong><?= number_format($series['views_count']); ?></strong> <small class="text-white">Views</small>
                     </div>
                     <div class="stat-badge">
-                        <i class="bi bi-star-fill text-warning me-2"></i>
-                        <strong>2.8M</strong> <small class="text-white">Ratings</small>
-                    </div>
-                    <div class="stat-badge">
-                        <i class="bi bi-award me-2"></i>
-                        <strong>16</strong> <small class="text-white">Emmy Awards</small>
+                        <i class="bi bi-translate me-2"></i>
+                        <strong><?= htmlspecialchars($series['language']); ?></strong> <small class="text-white">Language</small>
                     </div>
                 </div>
 
                 <!-- Synopsis -->
                 <div class="mb-4">
                     <h4 class="mb-3"><i class="bi bi-file-text me-2"></i>Synopsis</h4>
-                    <p class="lead">
-                        A chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and
-                        selling methamphetamine with a former student in order to secure his family's future.
-                        The show chronicles his transformation from mild-mannered educator to ruthless drug kingpin.
-                    </p>
-                </div>
-
-                <!-- Streaming Platforms -->
-                <div class="mb-4">
-                    <h5 class="mb-3"><i class="bi bi-broadcast me-2"></i>Available On</h5>
-                    <div>
-                        <span class="streaming-badge">
-                            <i class="bi bi-play-circle-fill me-2"></i>Netflix
-                        </span>
-                        <span class="streaming-badge">
-                            <i class="bi bi-play-circle-fill me-2"></i>Amazon Prime
-                        </span>
-                        <span class="streaming-badge">
-                            <i class="bi bi-play-circle-fill me-2"></i>Hulu
-                        </span>
-                    </div>
+                    <p class="lead"><?= nl2br(htmlspecialchars($series['overview'])); ?></p>
                 </div>
 
                 <!-- Creator & Writers -->
                 <div class="row mb-4">
+                    <?php if (!empty($directors)): ?>
                     <div class="col-md-6">
-                        <h5><i class="bi bi-pen me-2"></i>Creator</h5>
-                        <p>
-                            <a href="https://www.imdb.com/name/nm0319213/" class="text-decoration-none" target="_blank"
-                                rel="noopener noreferrer">Vince Gilligan</a>
-                        </p>
+                        <h5><i class="bi bi-megaphone me-2"></i>Directors</h5>
+                        <p><?= htmlspecialchars(implode(', ', $directors)); ?></p>
                     </div>
+                    <?php endif; ?>
+                    
+                    <?php if (!empty($writers)): ?>
                     <div class="col-md-6">
-                        <h5><i class="bi bi-megaphone me-2"></i>Executive Producers</h5>
-                        <p>
-                            <a href="https://www.imdb.com/name/nm0319213/" class="text-decoration-none" target="_blank"
-                                rel="noopener noreferrer">Vince Gilligan</a>,
-                            <a href="https://www.imdb.com/name/nm0425741/" class="text-decoration-none" target="_blank"
-                                rel="noopener noreferrer">Mark Johnson</a>
-                        </p>
+                        <h5><i class="bi bi-pen me-2"></i>Writers</h5>
+                        <p><?= htmlspecialchars(implode(', ', $writers)); ?></p>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
 
-        <hr class="my-5">
+        <hr class="custom-hr mt-5 mb-4">
 
-        <!-- Cast Section -->
+        <!-- Cast Section -->      
         <section class="mb-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3><i class="bi bi-people-fill me-2"></i>Main Cast</h3>
-                <a href="https://www.imdb.com/title/tt0903747/fullcredits/" class="btn btn-outline-light btn-sm"
-                    target="_blank">See Full Cast</a>
+            <div class="d-flex justify-content-between align-items-center mb-5"> 
+                <h3 class="text-white"><i class="bi bi-people-fill me-2"></i>Main Cast</h3>
+                
+                <?php if ($fullCastUrl !== "#"): ?>
+                    <a href="<?= $fullCastUrl ?>" class="btn btn-outline-light btn-sm" target="_blank" rel="noopener noreferrer">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> See Full Cast
+                    </a>
+                <?php endif; ?>
             </div>
 
-            <div class="row row-cols-2 row-cols-md-6 g-3">
-                <div class="col">
-                    <div class="cast-card">
-                        <img src="https://via.placeholder.com/150x200/667eea/ffffff?text=Bryan+Cranston"
-                            class="cast-avatar" alt="Bryan Cranston">
-                        <div class="mt-2">
-                            <h6 class="mb-0">Bryan Cranston</h6>
-                            <small class="text-white">Walter White</small>
+            <div class="row row-cols-2 row-cols-md-6 g-4">
+                <?php 
+                $displayed = 0;
+                foreach ($cast as $member): 
+                    $displayed++;
+                    
+                    // Logic: Use database image if it exists, otherwise use the initials avatar
+                    $initialsUrl = "https://ui-avatars.com/api/?name=" . urlencode($member['actor']) . "&background=random&color=fff&size=128";
+                    $displayPhoto = !empty($member['image_path']) ? $member['image_path'] : $initialsUrl;
+                ?>
+                    <div class="col">
+                        <div class="cast-card text-center">
+                            <div class="position-relative d-inline-block">
+                                <img src="<?= htmlspecialchars($displayPhoto) ?>" 
+                                    class="cast-avatar rounded-circle mb-2" 
+                                    alt="<?= htmlspecialchars($member['actor']); ?>"
+                                    style="width: 100px; height: 100px; object-fit: cover; border: 2px solid #333; transition: transform 0.3s ease;"
+                                    onerror="this.src='<?= $initialsUrl ?>'">
+                            </div>
+                            <div class="mt-2 px-1">
+                                <h6 class="mb-0 text-white text-truncate" title="<?= htmlspecialchars($member['actor']); ?>">
+                                    <?= htmlspecialchars($member['actor']); ?>
+                                </h6>
+                                <small class="text-white-50 d-block text-truncate" title="<?= htmlspecialchars($member['character'] ?? 'Role TBA'); ?>">
+                                    <?= htmlspecialchars($member['character_name'] ?? 'Role TBA'); ?>
+                                </small>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="col">
-                    <div class="cast-card">
-                        <img src="https://via.placeholder.com/150x200/764ba2/ffffff?text=Aaron+Paul" class="cast-avatar"
-                            alt="Aaron Paul">
-                        <div class="mt-2">
-                            <h6 class="mb-0">Aaron Paul</h6>
-                            <small class="text-white">Jesse Pinkman</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col">
-                    <div class="cast-card">
-                        <img src="https://via.placeholder.com/150x200/4ecdc4/ffffff?text=Anna+Gunn" class="cast-avatar"
-                            alt="Anna Gunn">
-                        <div class="mt-2">
-                            <h6 class="mb-0">Anna Gunn</h6>
-                            <small class="text-white">Skyler White</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col">
-                    <div class="cast-card">
-                        <img src="https://via.placeholder.com/150x200/ff6b6b/ffffff?text=Dean+Norris"
-                            class="cast-avatar" alt="Dean Norris">
-                        <div class="mt-2">
-                            <h6 class="mb-0">Dean Norris</h6>
-                            <small class="text-white">Hank Schrader</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col">
-                    <div class="cast-card">
-                        <img src="https://via.placeholder.com/150x200/f39c12/ffffff?text=Betsy+Brandt"
-                            class="cast-avatar" alt="Betsy Brandt">
-                        <div class="mt-2">
-                            <h6 class="mb-0">Betsy Brandt</h6>
-                            <small class="text-white">Marie Schrader</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col">
-                    <div class="cast-card">
-                        <img src="https://via.placeholder.com/150x200/9b59b6/ffffff?text=RJ+Mitte" class="cast-avatar"
-                            alt="RJ Mitte">
-                        <div class="mt-2">
-                            <h6 class="mb-0">RJ Mitte</h6>
-                            <small class="text-white">Walter Jr.</small>
-                        </div>
-                    </div>
-                </div>
+                <?php endforeach; ?>
             </div>
         </section>
-
         <hr class="my-5">
 
+
         <!-- Episodes Section -->
+        <?php if (!empty($seasons)): ?>
         <section class="mb-5">
             <h3 class="mb-4"><i class="bi bi-collection-play me-2"></i>Episodes</h3>
 
             <!-- Season Tabs -->
             <ul class="nav nav-tabs season-tabs" id="seasonTabs" role="tablist">
+                <?php foreach ($seasons as $index => $season): ?>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="season1-tab" data-bs-toggle="tab" data-bs-target="#season1"
-                        type="button" role="tab">
-                        Season 1
+                    <button class="nav-link <?= $index === 0 ? 'active' : ''; ?>" 
+                            id="season<?= $season['season_number']; ?>-tab" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#season<?= $season['season_number']; ?>"
+                            type="button" role="tab">
+                        Season <?= $season['season_number']; ?>
                     </button>
                 </li>
-
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="season2-tab" data-bs-toggle="tab" data-bs-target="#season2"
-                        type="button" role="tab">
-                        Season 2
-                    </button>
-                </li>
-
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="season3-tab" data-bs-toggle="tab" data-bs-target="#season3"
-                        type="button" role="tab">
-                        Season 3
-                    </button>
-                </li>
-
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="season4-tab" data-bs-toggle="tab" data-bs-target="#season4"
-                        type="button" role="tab">
-                        Season 4
-                    </button>
-                </li>
-
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="season5-tab" data-bs-toggle="tab" data-bs-target="#season5"
-                        type="button" role="tab">
-                        Season 5
-                    </button>
-                </li>
+                <?php endforeach; ?>
             </ul>
 
             <!-- Season Content -->
             <div class="tab-content" id="seasonTabContent">
-                <!-- Season 1 -->
-                <div class="tab-pane fade show active" id="season1" role="tabpanel">
+                <?php foreach ($seasons as $index => $season): ?>
+                <div class="tab-pane fade <?= $index === 0 ? 'show active' : ''; ?>" 
+                     id="season<?= $season['season_number']; ?>" 
+                     role="tabpanel">
                     <div class="mt-4">
                         <p class="text-white mb-4">
-                            <i class="bi bi-calendar3 me-2"></i>2008 • 7 Episodes
+                            <i class="bi bi-calendar3 me-2"></i><?= $season['release_year']; ?> • <?= count($season['episodes']); ?> Episodes
                         </p>
 
-                        <!-- Episode 1 -->
-                        <div class="episode-card">
-                            <div class="row g-3">
-                                <div class="col-auto">
-                                    <img src="https://via.placeholder.com/160x90/667eea/ffffff?text=Ep+1"
-                                        class="episode-thumbnail" alt="Episode 1">
-                                </div>
-                                <div class="col">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <span class="episode-number">E1</span>
-                                            <h5 class="mt-2 mb-1">Pilot</h5>
-                                        </div>
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="bi bi-star-fill"></i> 9.0
-                                        </span>
+                        <?php if (!empty($season['episodes'])): ?>
+                            <?php foreach ($season['episodes'] as $episode): ?>
+                            <!-- Episode Card -->
+                            <div class="episode-card">
+                                <div class="row g-3">
+                                    <div class="col-auto">
+                                        <img src="<?= !empty($episode['still_path']) ? htmlspecialchars($episode['still_path']) : 'assets/img/no-episode.jpg'; ?>"
+                                            class="episode-thumbnail" 
+                                            alt="Episode <?= $episode['episode_number']; ?>"
+                                            onerror="this.src='assets/img/no-episode.jpg'">
                                     </div>
-                                    <p class="text-white mb-2">
-                                        <i class="bi bi-clock me-1"></i>58min
-                                        <span class="mx-2">•</span>
-                                        <i class="bi bi-calendar3 me-1"></i>Jan 20, 2008
-                                    </p>
-                                    <p class="mb-0">
-                                        When an unassuming high school chemistry teacher discovers he has cancer,
-                                        he decides to team up with a former student to secure his family's financial
-                                        future.
-                                    </p>
+                                    <div class="col">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <span class="episode-number">E<?= $episode['episode_number']; ?></span>
+                                                <h5 class="mt-2 mb-1"><?= htmlspecialchars($episode['title']); ?></h5>
+                                            </div>
+                                        </div>
+                                        <p class="text-white mb-2">
+                                            <i class="bi bi-clock me-1"></i><?= $episode['duration']; ?>min
+                                            <?php if (!empty($episode['release_date'])): ?>
+                                                <span class="mx-2">•</span>
+                                                <i class="bi bi-calendar3 me-1"></i><?= date('M d, Y', strtotime($episode['release_date'])); ?>
+                                            <?php endif; ?>
+                                        </p>
+                                        <?php if (!empty($episode['overview'])): ?>
+                                            <p class="mb-0"><?= htmlspecialchars($episode['overview']); ?></p>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Episode 2 -->
-                        <div class="episode-card">
-                            <div class="row g-3">
-                                <div class="col-auto">
-                                    <img src="https://via.placeholder.com/160x90/764ba2/ffffff?text=Ep+2"
-                                        class="episode-thumbnail" alt="Episode 2">
-                                </div>
-                                <div class="col">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <span class="episode-number">E2</span>
-                                            <h5 class="mt-2 mb-1">Cat's in the Bag...</h5>
-                                        </div>
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="bi bi-star-fill"></i> 8.7
-                                        </span>
-                                    </div>
-                                    <p class="text-white mb-2">
-                                        <i class="bi bi-clock me-1"></i>48min
-                                        <span class="mx-2">•</span>
-                                        <i class="bi bi-calendar3 me-1"></i>Jan 27, 2008
-                                    </p>
-                                    <p class="mb-0">
-                                        Walt and Jesse attempt to tie up loose ends. The desperate situation gets more
-                                        complicated
-                                        with the flip of a coin.
-                                    </p>
-                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="text-center py-5">
+                                <i class="bi bi-collection-play display-1 text-white-50"></i>
+                                <p class="text-white-50 mt-3">No episodes available for this season</p>
                             </div>
-                        </div>
-
-                        <!-- Episode 3 -->
-                        <div class="episode-card">
-                            <div class="row g-3">
-                                <div class="col-auto">
-                                    <img src="https://via.placeholder.com/160x90/4ecdc4/ffffff?text=Ep+3"
-                                        class="episode-thumbnail" alt="Episode 3">
-                                </div>
-                                <div class="col">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <span class="episode-number">E3</span>
-                                            <h5 class="mt-2 mb-1">...And the Bag's in the River</h5>
-                                        </div>
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="bi bi-star-fill"></i> 8.8
-                                        </span>
-                                    </div>
-                                    <p class="text-white mb-2">
-                                        <i class="bi bi-clock me-1"></i>48min
-                                        <span class="mx-2">•</span>
-                                        <i class="bi bi-calendar3 me-1"></i>Feb 10, 2008
-                                    </p>
-                                    <p class="mb-0">
-                                        Walter accepts his new identity as a drug dealer. Elsewhere, Jesse decides to
-                                        put his
-                                        aunt's house on the market.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="text-center mt-4">
-                            <a href="https://www.netflix.com/ph-en/title/70143836" class="btn btn-outline-light" target="_blank">
-                                <i class="bi bi-plus-lg me-2"></i>Load More Episodes
-                            </a>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
-
-                <!-- Season 2-5 -->
-                <div class="tab-pane fade" id="season2" role="tabpanel">
-                    <div class="mt-4">
-                        <p class="text-white mb-4">
-                            <i class="bi bi-calendar3 me-2"></i>2009 • 13 Episodes
-                        </p>
-                        <div class="text-center py-5">
-                            <i class="bi bi-collection-play display-1 text-white"></i>
-                            <p class="text-white mt-3">Season 2 episodes will appear here</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="season3" role="tabpanel">
-                    <div class="mt-4">
-                        <p class="text-white mb-4">
-                            <i class="bi bi-calendar3 me-2"></i>2010 • 13 Episodes
-                        </p>
-                        <div class="text-center py-5">
-                            <i class="bi bi-collection-play display-1 text-white"></i>
-                            <p class="text-white mt-3">Season 3 episodes will appear here</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="season4" role="tabpanel">
-                    <div class="mt-4">
-                        <p class="text-white mb-4">
-                            <i class="bi bi-calendar3 me-2"></i>2011 • 13 Episodes
-                        </p>
-                        <div class="text-center py-5">
-                            <i class="bi bi-collection-play display-1 text-white"></i>
-                            <p class="text-white mt-3">Season 4 episodes will appear here</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="season5" role="tabpanel">
-                    <div class="mt-4">
-                        <p class="text-white mb-4">
-                            <i class="bi bi-calendar3 me-2"></i>2012-2013 • 16 Episodes
-                        </p>
-                        <div class="text-center py-5">
-                            <i class="bi bi-collection-play display-1 text-white"></i>
-                            <p class="text-white mt-3">Season 5 episodes will appear here</p>
-                        </div>
-                    </div>
-                </div>
+                <?php endforeach; ?>
             </div>
         </section>
-
         <hr class="my-5">
+        <?php endif; ?>
 
         <!-- Trailer Section -->
+        <?php if (!empty($youtube_embed)): ?>
         <section id="trailer-section" class="mb-5">
             <h3 class="mb-4"><i class="bi bi-play-circle me-2"></i>Official Trailer</h3>
             <div class="trailer-container">
-                <iframe src="https://www.youtube.com/embed/HhesaQXLuRY" 
-                    title="Breaking Bad Trailer" 
+                <iframe src="<?= $youtube_embed; ?>" 
+                    title="<?= htmlspecialchars($series['title']); ?> Trailer" 
                     frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen>
                 </iframe>
             </div>
         </section>
-
-        <!-- Reviews Section -->
-        <section class="mb-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3><i class="bi bi-chat-square-text me-2"></i>User Reviews</h3>
-                <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#reviewModal">
-                    <i class="bi bi-pencil me-2"></i>Write Review
-                </button>
-            </div>
-
-            <!-- Review 1 -->
-            <div class="review-card">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                        <h5 class="mb-1">tv_enthusiast_2024</h5>
-                        <div class="review-rating">
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <span class="ms-2">10/10</span>
-                        </div>
-                    </div>
-                    <small class="text-white">1 month ago</small>
-                </div>
-                <h6 class="mb-2">The Greatest TV Series Ever Made</h6>
-                <p class="mb-2">
-                    Breaking Bad is a masterclass in storytelling, character development, and cinematography.
-                    Bryan Cranston's transformation from Walter White to Heisenberg is absolutely captivating.
-                    Every episode builds tension perfectly, and the finale is nothing short of perfection.
-                    A must-watch for anyone who appreciates quality television.
-                </p>
-                <div class="d-flex gap-3">
-                    <button class="btn btn-sm btn-outline-light">
-                        <i class="bi bi-hand-thumbs-up me-1"></i>Helpful (892)
-                    </button>
-                    <button class="btn btn-sm btn-outline-light">
-                        <i class="bi bi-flag me-1"></i>Report
-                    </button>
-                </div>
-            </div>
-
-            <!-- Review 2 -->
-            <div class="review-card">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                        <h5 class="mb-1">cinema_critic_pro</h5>
-                        <div class="review-rating">
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <span class="ms-2">10/10</span>
-                        </div>
-                    </div>
-                    <small class="text-white">2 months ago</small>
-                </div>
-                <h6 class="mb-2">Phenomenal From Start to Finish</h6>
-                <p class="mb-2">
-                    Vince Gilligan created something truly special. The writing, acting, direction, and
-                    cinematography are all top-tier. This show set a new standard for television drama.
-                </p>
-                <div class="d-flex gap-3">
-                    <button class="btn btn-sm btn-outline-light">
-                        <i class="bi bi-hand-thumbs-up me-1"></i>Helpful (654)
-                    </button>
-                    <button class="btn btn-sm btn-outline-light">
-                        <i class="bi bi-flag me-1"></i>Report
-                    </button>
-                </div>
-            </div>
-
-            <div class="text-center mt-4">
-                <button class="btn btn-outline-light">Load More Reviews</button>
-            </div>
-        </section>
+        <hr class="my-5">
+        <?php endif; ?>
 
         <!-- Similar Series Section -->
+        <?php if (!empty($similar_series)): ?>
         <section class="mb-5">
             <h3 class="mb-4"><i class="bi bi-tv me-2"></i>More Like This</h3>
             <div class="row row-cols-2 row-cols-md-4 g-4">
-                <!-- Similar Series 1 -->
+                <?php foreach ($similar_series as $similar): ?>
                 <div class="col">
-                    <a href="series-details.php" class="text-decoration-none">
+                    <a href="series-details.php?id=<?= $similar['series_id']; ?>" class="text-decoration-none">
                         <div class="card media-card bg-dark text-white position-relative">
-                            <img src="https://via.placeholder.com/300x450/667eea/ffffff?text=Better+Call+Saul"
-                                class="card-img-top" alt="Better Call Saul">
+                            <img src="<?= htmlspecialchars($similar['poster_path']); ?>"
+                                class="card-img-top" 
+                                alt="<?= htmlspecialchars($similar['title']); ?>"
+                                onerror="this.src='assets/img/no-poster.jpg'">
                             <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                <i class="bi bi-star-fill"></i> 9.0
+                                <i class="bi bi-star-fill"></i> <?= number_format($similar['rating'], 1); ?>
                             </span>
                             <div class="card-body">
-                                <h5 class="card-title">Better Call Saul</h5>
-                                <p class="card-text text-white">Crime • 2015</p>
+                                <h5 class="card-title"><?= htmlspecialchars($similar['title']); ?></h5>
+                                <p class="card-text text-white"><?= htmlspecialchars($similar['genre_names']); ?> • <?= $similar['release_year']; ?></p>
                             </div>
                         </div>
                     </a>
                 </div>
-
-                <!-- Similar Series 2 -->
-                <div class="col">
-                    <a href="series-details.php" class="text-decoration-none">
-                        <div class="card media-card bg-dark text-white position-relative">
-                            <img src="https://via.placeholder.com/300x450/764ba2/ffffff?text=Ozark" class="card-img-top"
-                                alt="Ozark">
-                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                <i class="bi bi-star-fill"></i> 8.5
-                            </span>
-                            <div class="card-body">
-                                <h5 class="card-title">Ozark</h5>
-                                <p class="card-text text-white">Crime • 2017</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Similar Series 3 -->
-                <div class="col">
-                    <a href="series-details.php" class="text-decoration-none">
-                        <div class="card media-card bg-dark text-white position-relative">
-                            <img src="https://via.placeholder.com/300x450/4ecdc4/ffffff?text=The+Wire"
-                                class="card-img-top" alt="The Wire">
-                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                <i class="bi bi-star-fill"></i> 9.3
-                            </span>
-                            <div class="card-body">
-                                <h5 class="card-title">The Wire</h5>
-                                <p class="card-text text-white">Crime • 2002</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Similar Series 4 -->
-                <div class="col">
-                    <a href="series-details.php" class="text-decoration-none">
-                        <div class="card media-card bg-dark text-white position-relative">
-                            <img src="https://via.placeholder.com/300x450/ff6b6b/ffffff?text=The+Sopranos"
-                                class="card-img-top" alt="The Sopranos">
-                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">
-                                <i class="bi bi-star-fill"></i> 9.2
-                            </span>
-                            <div class="card-body">
-                                <h5 class="card-title">The Sopranos</h5>
-                                <p class="card-text text-white">Crime • 1999</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
+                <?php endforeach; ?>
             </div>
         </section>
+        <?php endif; ?>
     </main>
 
-    <?php include 'includes/details-rating-modals.php'?>
+    <?php include 'includes/details-rating-modals.php'; ?>
     
     <?php include 'includes/footer.php'; ?>

@@ -1,0 +1,38 @@
+
+1. WandaVision
+
+Title: WandaVision
+Year: 2021      
+MTRCB Rating: PG
+Rating: 8.2
+Status: Ended
+Original Languge: English 
+TMBD ID: 85271
+Overview: Blends the style of classic sitcoms with the MCU, in which Wanda Maximoff and Vision - two super-powered beings living their ideal suburban lives - begin to suspect that everything is not as it seems.
+Poster Path: assets/img/posters/wandavision-poster.webp
+Backdrop Path: assets/img/backdrops/wandavision-backdrop.webp
+Genre: Action, Fantasy, Sci-fi
+Trailer: https://www.youtube.com/watch?v=sj9J2ecsSpo
+
+Season #: 1
+Season Title: None
+Release Year: 2021
+Poster Path: assets/img/posters/wandavision-poster.webp
+
+Ep #: 1
+Episode Title: Filmed Before a Live Studio Audience 
+Duration: 31
+Episode Synopis: Wanda and Vision struggle to conceal their powers during dinner with Vision's boss and his wife.
+Episode Still Path: assets/img/episode-images/wandavision-s1e1.webp
+
+Elizabeth Olsen - Wanda Maximoff - assets/img/actors/elizabeth-olsen.jpg
+Paul Bettany - Vision - assets/img/actors/paul-bettany.jpg
+Kathryn Hann - Agnes - assets/img/actors/kathryn-hann.jpg
+Teyonah Parris - Monica Rambeau - assets/img/actors/teyonah-parris.jpg
+Randall Park - Jimmy Woo - assets/img/actors/randall-park.jpg
+Kat Dennings - Darcy Lewis - assets/img/actors/kat-dennings.jpg
+
+Directors: Jac Schaeffer
+Writers: Jac Schaeffer  
+        Peter Cameron
+        Megan McDonnell

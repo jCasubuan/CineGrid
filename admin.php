@@ -16,7 +16,7 @@ if (
 $movieCount = $Conn->query("SELECT COUNT(*) as total FROM movies")->fetch_assoc()['total'];
 
 // Fetch series count
-// $seriesCount = $Conn->query("SELECT COUNT(*) as total FROM series")->fetch_assoc()['total'];
+$seriesCount = $Conn->query("SELECT COUNT(*) as total FROM series")->fetch_assoc()['total'];
 
 // Fetch User Count
 $userCount = $Conn->query("SELECT COUNT(*) as total FROM users WHERE role != 'admin'")->fetch_assoc()['total'];
@@ -27,15 +27,21 @@ $userCount = $Conn->query("SELECT COUNT(*) as total FROM users WHERE role != 'ad
 // Define genres array (matching your movie setup)
 $genres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Drama', 'Fantasy', 'Horror', 'Sci-Fi', 'Thriller'];
 
+// series genres array
+$series_genres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Drama', 'Fantasy', 'Horror', 'Sci-Fi', 'Thriller', 'Romance', 'Documentary'];
+
 // Get filter parameters
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $genre_filter = isset($_GET['genre']) ? trim($_GET['genre']) : '';
 $year_filter = isset($_GET['year']) ? trim($_GET['year']) : '';
 
-// Pagination Logic
 $limit = 5; 
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $offset = ($page - 1) * $limit;
+
+// Separate pagination for Recent Activity (Dashboard)
+$activity_page = isset($_GET['activity_page']) ? max(1, (int)$_GET['activity_page']) : 1;
+$activity_offset = ($activity_page - 1) * $limit;
 
 // Build dynamic WHERE clause for filtering
 $where_conditions = [];
@@ -125,13 +131,82 @@ $recentActivity = $Conn->query("
             user_id
     FROM activity_log 
     ORDER BY created_at DESC 
-    LIMIT $limit OFFSET $offset
+    LIMIT $limit OFFSET $activity_offset
 ");
 
 // FIX: Use different variable names for the Activity Log pagination
 $log_res = $Conn->query("SELECT COUNT(*) as count FROM activity_log");
 $total_logs = $log_res->fetch_assoc()['count']; 
 $total_log_pages = ceil($total_logs / $limit);
+
+// --- SERIES LOGIC ---
+$series_search = isset($_GET['series_search']) ? trim($_GET['series_search']) : '';
+$series_genre_filter = isset($_GET['series_genre']) ? trim($_GET['series_genre']) : '';
+$series_year_filter = isset($_GET['series_year']) ? trim($_GET['series_year']) : '';
+
+$s_limit = 5; 
+$s_page = (isset($_GET['section']) && $_GET['section'] === 'series') ? max(1, (int)($_GET['page'] ?? 1)) : 1;
+$s_offset = ($s_page - 1) * $s_limit;
+
+$s_conditions = [];
+$s_params = [];
+$s_types = '';
+
+if (!empty($series_search)) {
+    $s_conditions[] = "s.title LIKE ?";
+    $s_params[] = "%$series_search%";
+    $s_types .= 's';
+}
+if (!empty($series_genre_filter)) {
+    $s_conditions[] = "g.name = ?";
+    $s_params[] = $series_genre_filter;
+    $s_types .= 's';
+}
+if (!empty($series_year_filter)) {
+    $s_conditions[] = "s.release_year = ?";
+    $s_params[] = $series_year_filter;
+    $s_types .= 'i';
+}
+
+$s_where = !empty($s_conditions) ? 'WHERE ' . implode(' AND ', $s_conditions) : '';
+
+// Count total series for pagination
+$s_count_sql = "SELECT COUNT(DISTINCT s.series_id) as count FROM series s 
+                LEFT JOIN series_genres sg ON s.series_id = sg.series_id 
+                LEFT JOIN genres g ON sg.genre_id = g.genre_id $s_where";
+
+$stmt = $Conn->prepare($s_count_sql);
+if (!empty($s_params)) { $stmt->bind_param($s_types, ...$s_params); }
+$stmt->execute();
+$total_series = $stmt->get_result()->fetch_assoc()['count'];
+$s_total_pages = ceil($total_series / $s_limit);
+
+// Fetch Series with Season Count
+$series_sql = "SELECT s.*, 
+               GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ') as genre_names,
+               (SELECT COUNT(*) FROM seasons WHERE series_id = s.series_id) as total_seasons
+               FROM series s 
+               LEFT JOIN series_genres sg ON s.series_id = sg.series_id 
+               LEFT JOIN genres g ON sg.genre_id = g.genre_id 
+               $s_where 
+               GROUP BY s.series_id 
+               ORDER BY s.series_id DESC 
+               LIMIT ? OFFSET ?";
+
+$s_stmt = $Conn->prepare($series_sql);
+$s_params[] = $s_limit;
+$s_params[] = $s_offset;
+$s_types .= 'ii';
+$s_stmt->bind_param($s_types, ...$s_params);
+$s_stmt->execute();
+$series_result = $s_stmt->get_result();
+$series = $series_result;
+
+// Get unique years for Series Filter dropdown
+$available_series_years = [];
+$y_res = $Conn->query("SELECT DISTINCT release_year FROM series WHERE release_year IS NOT NULL ORDER BY release_year DESC");
+while($y = $y_res->fetch_assoc()) { $available_series_years[] = $y['release_year']; }
+
 ?>
 
 <!DOCTYPE html>
@@ -218,7 +293,7 @@ $total_log_pages = ceil($total_logs / $limit);
                         <div class="stat-icon" style="background: rgba(46, 204, 113, 0.2);">
                             <i class="bi bi-tv" style="color: #2ecc71;"></i>
                         </div>
-                        <div class="stat-value">0</div>
+                        <div class="stat-value"><?php echo $seriesCount; ?></div>
                         <div class="stat-label">Total Series</div>
                     </div>
                 </div>
@@ -315,23 +390,23 @@ $total_log_pages = ceil($total_logs / $limit);
             <div class="mt-4 d-flex flex-column align-items-center">
             <nav aria-label="Page navigation">
                     <ul class="pagination pagination-sm mb-2">
-                        <li class="page-item <?= ($page <= 1) ? 'disabled' : ''; ?>">
-                            <a class="page-link bg-dark border-secondary text-white" href="?page=<?= $page - 1; ?>">Previous</a>
+                        <li class="page-item <?= ($activity_page <= 1) ? 'disabled' : ''; ?>">
+                            <a class="page-link bg-dark border-secondary text-white" href="?activity_page=<?= $activity_page - 1; ?>">Previous</a>
                         </li>
                         
                         <?php for($i = 1; $i <= $total_log_pages; $i++): ?>
-                            <li class="page-item <?= ($page == $i) ? 'active' : ''; ?>">
-                                <a class="page-link <?= ($page == $i) ? 'bg-primary border-primary' : 'bg-dark border-secondary text-white'; ?>" href="?page=<?= $i; ?>"><?= $i; ?></a>
+                            <li class="page-item <?= ($activity_page == $i) ? 'active' : ''; ?>">
+                                <a class="page-link <?= ($activity_page == $i) ? 'bg-primary border-primary' : 'bg-dark border-secondary text-white'; ?>" href="?activity_page=<?= $i; ?>"><?= $i; ?></a>
                             </li>
                         <?php endfor; ?>
 
-                        <li class="page-item <?= ($page >= $total_log_pages) ? 'disabled' : ''; ?>">
-                            <a class="page-link bg-dark border-secondary text-white" href="?page=<?= $page + 1; ?>">Next</a>
+                        <li class="page-item <?= ($activity_page >= $total_log_pages) ? 'disabled' : ''; ?>">
+                            <a class="page-link bg-dark border-secondary text-white" href="?activity_page=<?= $activity_page + 1; ?>">Next</a>
                         </li>
                     </ul>
                 </nav>
                 <small class="text-white-50">
-                    Showing <?= ($offset + 1); ?> to <?= min($offset + $limit, $total_logs); ?> of <?= $total_logs; ?> entries
+                    Showing <?= (($activity_page - 1) * $limit + 1); ?> to <?= min($activity_page * $limit, $total_logs); ?> of <?= $total_logs; ?> entries
                 </small>
             </div>
         </section>
@@ -539,15 +614,72 @@ $total_log_pages = ceil($total_logs / $limit);
                 </button>
             </div>
 
-            <!-- Search Bar -->
-            <div class="search-bar mb-4">
-                <input type="text" id="seriesSearch" placeholder="Search series..." class="form-control">
-                <i class="bi bi-search"></i>
+            <!-- Search Filter -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <form method="GET" action="" id="seriesSearchForm">
+                        <input type="hidden" name="section" value="series">
+                        <input type="hidden" name="page" value="1">
+                        <input type="hidden" name="series_genre" value="<?= htmlspecialchars($series_genre_filter ?? ''); ?>">
+                        <input type="hidden" name="series_year" value="<?= htmlspecialchars($series_year_filter ?? ''); ?>">
+                        
+                        <div class="search-bar">
+                            <input type="text" 
+                                name="series_search" 
+                                id="seriesSearch" 
+                                placeholder="Search series..." 
+                                class="form-control bg-dark text-white border-secondary"
+                                value="<?= htmlspecialchars($series_search ?? ''); ?>"
+                                autocomplete="off">
+                            <i class="bi bi-search"></i>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select bg-dark text-white border-secondary" id="seriesGenreFilter">
+                        <option value="">All Genres</option>
+                        <?php foreach($series_genres as $genre): ?>
+                            <option value="<?= htmlspecialchars($genre); ?>" <?= (($series_genre_filter ?? '') === $genre) ? 'selected' : ''; ?>>
+                                <?= htmlspecialchars($genre); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select bg-dark text-white border-secondary" id="seriesYearFilter">
+                        <option value="">All Years</option>
+                        <?php foreach($available_series_years as $year): ?>
+                            <option value="<?= $year; ?>" <?= (($series_year_filter ?? '') == $year) ? 'selected' : ''; ?>>
+                                <?= $year; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
+
+            <!-- Clear Filters Button -->
+            <?php if (!empty($series_search) || !empty($series_genre_filter) || !empty($series_year_filter)): ?>
+                <div class="mb-3">
+                    <a href="?section=series&page=1" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Clear Filters
+                    </a>
+                    <span class="text-white-50 ms-2">
+                        <?php if (!empty($series_search)): ?>
+                            Search: "<?= htmlspecialchars($series_search); ?>" 
+                        <?php endif; ?>
+                        <?php if (!empty($series_genre_filter)): ?>
+                            | Genre: <?= htmlspecialchars($series_genre_filter); ?>
+                        <?php endif; ?>
+                        <?php if (!empty($series_year_filter)): ?>
+                            | Year: <?= htmlspecialchars($series_year_filter); ?>
+                        <?php endif; ?>
+                    </span>
+                </div>
+            <?php endif; ?>
 
             <!-- Series Table -->
             <div class="data-table">
-                <table class="table table-dark table-hover mb-0">
+                <table class="table table-dark table-hover mb-0 align-middle">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -555,54 +687,124 @@ $total_log_pages = ceil($total_logs / $limit);
                             <th>Title</th>
                             <th>Genre</th>
                             <th>Seasons</th>
-                            <th>Rating</th>
-                            <th>Status</th>
+                            <th>Ratings</th>
+                            <th>Featured</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>001</td>
-                            <td><img src="https://via.placeholder.com/50x75/667eea/ffffff?text=BB" class="thumbnail" alt="Series"></td>
-                            <td>Breaking Bad</td>
-                            <td>Crime</td>
-                            <td>5</td>
-                            <td><i class="bi bi-star-fill text-warning"></i> 9.5</td>
-                            <td><span class="status-badge status-active">Active</span></td>
-                            <td>
-                                <button class="action-btn btn-view" onclick="viewSeries(1)">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button class="action-btn btn-edit" data-bs-toggle="modal" data-bs-target="#editSeriesModal">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="action-btn btn-delete" onclick="deleteSeries(1)">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>002</td>
-                            <td><img src="https://via.placeholder.com/50x75/764ba2/ffffff?text=GOT" class="thumbnail" alt="Series"></td>
-                            <td>Game of Thrones</td>
-                            <td>Fantasy</td>
-                            <td>8</td>
-                            <td><i class="bi bi-star-fill text-warning"></i> 9.2</td>
-                            <td><span class="status-badge status-active">Active</span></td>
-                            <td>
-                                <button class="action-btn btn-view" onclick="viewSeries(2)">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button class="action-btn btn-edit" data-bs-toggle="modal" data-bs-target="#editSeriesModal">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="action-btn btn-delete" onclick="deleteSeries(2)">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
+                    <tbody id="seriesTableBody">
+                        <?php if (isset($series) && $series->num_rows > 0): ?>
+                            <?php while($row = $series->fetch_assoc()): ?>
+                                <tr>
+                                    <td>#<?= str_pad($row['series_id'], 3, '0', STR_PAD_LEFT); ?></td>
+                                    <td>
+                                        <img src="<?= !empty($row['poster_path']) ? $row['poster_path'] : 'assets/img/no-poster.jpg'; ?>" 
+                                            class="rounded border border-secondary" 
+                                            alt="Poster" 
+                                            style="width:45px; height:65px; object-fit:cover;">
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-white"><?= htmlspecialchars($row['title']); ?></div>
+                                        <small class="text-info"><?= ($row['is_featured']) ? 'Hero Banner' : 'Standard Feature'; ?></small>
+                                    </td>
+                                    <td>
+                                        <span class="small text-white-50">
+                                            <?= htmlspecialchars($row['genre_names'] ?: 'Uncategorized'); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            <?= $row['total_seasons'] ?? 0; ?> Seasons
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-dark text-warning border border-warning">
+                                            <i class="bi bi-star-fill me-1"></i><?= number_format($row['rating'], 1); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm <?= $row['is_featured'] ? 'btn-warning' : 'btn-outline-secondary' ?>"
+                                                onclick="toggleFeaturedSeries(<?= $row['series_id']; ?>)" 
+                                                title="Toggle Hero Banner">
+                                            <i class="bi <?= $row['is_featured'] ? 'bi-lightning-fill' : 'bi-lightning' ?>"></i>
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="series-details.php?id=<?= $row['series_id']; ?>" class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editSeriesModal" 
+                                                    onclick="loadSeriesEditData(<?= $row['series_id']; ?>)">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="deleteSeries(<?= $row['series_id']; ?>, '<?= addslashes($row['title']); ?>')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-white-50">
+                                    <i class="bi bi-folder2-open d-block fs-2 mb-2"></i>
+                                    No series found in the database.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-4 d-flex flex-column align-items-center">
+                <?php
+                // Build filter query string for series pagination
+                $series_filter_params = '';
+                if (!empty($series_search)) {
+                    $series_filter_params .= '&series_search=' . urlencode($series_search);
+                }
+                if (!empty($series_genre_filter)) {
+                    $series_filter_params .= '&series_genre=' . urlencode($series_genre_filter);
+                }
+                if (!empty($series_year_filter)) {
+                    $series_filter_params .= '&series_year=' . urlencode($series_year_filter);
+                }
+                ?>
+                
+                <nav aria-label="Series navigation">
+                    <ul class="pagination pagination-sm mb-2">
+                        <li class="page-item <?= ($s_page <= 1) ? 'disabled' : ''; ?>">
+                            <a class="page-link border-secondary text-white" 
+                            href="?page=<?= $s_page - 1; ?>&section=series<?= $series_filter_params; ?>" 
+                            style="background-color: #1a1d20;">Previous</a>
+                        </li>
+
+                        <?php for($i = 1; $i <= $s_total_pages; $i++): ?>
+                            <li class="page-item <?= ($s_page == $i) ? 'active' : ''; ?>">
+                                <a class="page-link border-secondary <?= ($s_page == $i) ? '' : 'text-white'; ?>" 
+                                href="?page=<?= $i; ?>&section=series<?= $series_filter_params; ?>"
+                                style="<?= ($s_page == $i) ? 'background-color: #0d6efd; border-color: #0d6efd;' : 'background-color: #1a1d20;'; ?>">
+                                    <?= $i; ?>
+                                </a>
+                            </li>
+                        <?php endfor; ?>
+
+                        <li class="page-item <?= ($s_page >= $s_total_pages) ? 'disabled' : ''; ?>">
+                            <a class="page-link border-secondary text-white" 
+                            href="?page=<?= $s_page + 1; ?>&section=series<?= $series_filter_params; ?>" 
+                            style="background-color: #1a1d20;">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <div class="text-white-50 small">
+                    Showing <?= ($total_series > 0) ? ($s_offset + 1) : 0; ?> to <?= min($s_offset + $s_limit, $total_series); ?> of <?= $total_series; ?> series
+                </div>
             </div>
         </section>
 

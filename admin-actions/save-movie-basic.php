@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/init.php';
+require_once '../includes/validate-movie.php';
 
 if (
     empty($_SESSION['user_id']) ||
@@ -30,6 +31,22 @@ $backdropPath   = trim($_POST['backdrop_path'] ?? '');
 
 // Validations
 
+// Validate movie title (prevent gibberish/random text)
+   $titleValidation = isValidMovieTitle($title);
+   if (!$titleValidation['valid']) {
+       http_response_code(422);
+       echo json_encode(['error' => $titleValidation['error']]);
+       exit;
+   }
+
+// Validate year
+$yearValidation = isValidReleaseYear($releaseYear);
+if (!$yearValidation['valid']) {
+    http_response_code(422);
+    echo json_encode(['error' => $yearValidation['error']]);
+    exit;
+}
+
 // all fields required
 if ($title === '' || $overview === '' || !$releaseYear || !$tmdbId || $posterPath === '' || $backdropPath === '') {
     http_response_code(422);
@@ -37,20 +54,57 @@ if ($title === '' || $overview === '' || !$releaseYear || !$tmdbId || $posterPat
     exit;
 }
 
-// invalid tmdb id
-if (!is_numeric($tmdbId) || $tmdbId <= 0) {
+// // invalid tmdb id
+// if (!is_numeric($tmdbId) || $tmdbId <= 0) {
+//     http_response_code(422);
+//     echo json_encode(['error' => 'Invalid TMDB ID. It must be a positive number.']);
+//     exit;
+// }
+
+// // tmdb length
+// $tmdb_len = strlen((string)$tmdbId);
+// if ($tmdb_len < 3 || $tmdb_len > 8) {
+//     http_response_code(422);
+//     echo json_encode(['error' => 'TMDB ID must be between 3 and 8 digits.']);
+//     exit;
+// }
+
+$tmdbValidation = isValidTmdbId($tmdbId);
+if (!$tmdbValidation['valid']) {
     http_response_code(422);
-    echo json_encode(['error' => 'Invalid TMDB ID. It must be a positive number.']);
+    echo json_encode(['error' => $tmdbValidation['error']]);
     exit;
 }
 
-// tmdb length
-$tmdb_len = strlen((string)$tmdbId);
-if ($tmdb_len < 3 || $tmdb_len > 8) {
+$overviewValidation = isValidOverview($overview);
+if (!$overviewValidation['valid']) {
     http_response_code(422);
-    echo json_encode(['error' => 'TMDB ID must be between 3 and 8 digits.']);
+    echo json_encode(['error' => $overviewValidation['error']]);
     exit;
 }
+
+$posterValidation = isValidImagePath($posterPath, 'Poster');
+if (!$posterValidation['valid']) {
+    http_response_code(422);
+    echo json_encode(['error' => $posterValidation['error']]);
+    exit;
+}
+
+$backdropValidation = isValidImagePath($backdropPath, 'Backdrop');
+if (!$backdropValidation['valid']) {
+    http_response_code(422);
+    echo json_encode(['error' => $backdropValidation['error']]);
+    exit;
+}
+
+$ratingValidation = isValidMovieRating($rating);
+if (!$ratingValidation['valid']) {
+    http_response_code(422);
+    echo json_encode(['error' => $ratingValidation['error']]);
+    exit;
+}
+
+
 
 // duration 
 if ($duration <= 0 || $duration > 600) {

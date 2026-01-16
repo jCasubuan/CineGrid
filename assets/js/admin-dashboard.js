@@ -19,7 +19,6 @@ class SectionManager {
                     e.preventDefault();
                     this.showSection(sectionName + 'Section');
                 }
-                // If no data-section attribute, let the link work normally
             });
         });
 
@@ -33,7 +32,6 @@ class SectionManager {
             this.showSection('dashboardSection'); // Default
         }
     }
-
 
     showSection(sectionId) {
         // Hide all sections
@@ -406,7 +404,6 @@ window.loadEditData = loadEditData;
 // ========================================
 async function toggleFeatured(movieId) {
     try {
-        // Send POST request to the backend script
         const res = await fetch(`admin-actions/toggle-featured.php?id=${movieId}`, { 
             method: 'POST' 
         });
@@ -416,21 +413,18 @@ async function toggleFeatured(movieId) {
         const data = await res.json();
         
         if (data.status === 'success') {
-            // 1. Target the button using the movieId
             const btn = document.querySelector(`[onclick="toggleFeatured(${movieId})"]`);
             
             if (btn) {
                 const icon = btn.querySelector('i');
                 
                 if (data.new_state) {
-                    // 2. Change to Featured State (Yellow + Filled Lightning)
                     btn.classList.remove('btn-outline-secondary');
                     btn.classList.add('btn-warning');
                     
                     icon.classList.remove('bi-lightning');
                     icon.classList.add('bi-lightning-fill');
                 } else {
-                    // 3. Change to Normal State (Gray + Outline Lightning)
                     btn.classList.remove('btn-warning');
                     btn.classList.add('btn-outline-secondary');
                     
@@ -439,7 +433,6 @@ async function toggleFeatured(movieId) {
                 }
             }
 
-            // 4. Show toast notification using SweetAlert
             const msg = data.new_state ? 'Added to Hero Banner' : 'Removed from Hero Banner';
             Swal.fire({
                 toast: true,
@@ -461,11 +454,10 @@ async function toggleFeatured(movieId) {
     }
 }
 
-// Make it globally accessible
 window.toggleFeatured = toggleFeatured;
 
 // ========================================
-// 6. MULTI-STEP MODAL HANDLER (Improved)
+// 6. MULTI-STEP MODAL HANDLER
 // ========================================
 class MultiStepModalHandler {
     constructor(steps) {
@@ -489,7 +481,6 @@ class MultiStepModalHandler {
             const submitBtn = form.querySelector('[type="submit"]');
             const originalBtnText = submitBtn?.innerHTML || '';
             
-            // Disable button and show loading
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
@@ -506,13 +497,11 @@ class MultiStepModalHandler {
                 const data = await res.json();
 
                 if (data.status === 'ok') {
-                    // Show success state
                     if (submitBtn) {
                         submitBtn.classList.replace('btn-primary', 'btn-success');
                         submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Saved!';
                     }
 
-                    // Wait briefly, then transition to next modal
                     await new Promise(resolve => setTimeout(resolve, 600));
                     
                     const currentModal = bootstrap.Modal.getInstance(document.getElementById(currentModalId));
@@ -521,7 +510,6 @@ class MultiStepModalHandler {
                     currentModal.hide();
                     nextModal.show();
                     
-                    // Reset button
                     if (submitBtn) {
                         submitBtn.classList.replace('btn-success', 'btn-primary');
                         submitBtn.innerHTML = originalBtnText;
@@ -533,7 +521,9 @@ class MultiStepModalHandler {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: error.message
+                    text: error.message,
+                    background: '#1a1d20',
+                    color: '#fff'
                 });
             } finally {
                 if (submitBtn) {
@@ -586,7 +576,9 @@ class DynamicListManager {
                         title: 'Cannot Remove',
                         text: 'At least one entry is required.',
                         timer: 2000,
-                        showConfirmButton: false
+                        showConfirmButton: false,
+                        background: '#1a1d20',
+                        color: '#fff'
                     });
                 }
             }
@@ -759,10 +751,11 @@ class ConfirmMovieSave {
         this.confirmBtn.addEventListener('click', async (e) => {
             e.preventDefault();
 
-            // Show loading
             Swal.fire({
                 title: 'Saving...',
                 allowOutsideClick: false,
+                background: '#1a1d20',
+                color: '#fff',
                 didOpen: () => { Swal.showLoading(); }
             });
 
@@ -780,10 +773,11 @@ class ConfirmMovieSave {
                         title: 'Success!',
                         text: 'The movie has been added successfully.',
                         icon: 'success',
+                        background: '#1a1d20',
+                        color: '#fff',
                         confirmButtonColor: '#0d6efd'
                     });
 
-                    // Clear draft and reload
                     await fetch('admin-actions/clear-movie-draft.php');
                     location.reload();
                 } else {
@@ -794,7 +788,9 @@ class ConfirmMovieSave {
                 Swal.fire({
                     title: 'Error!',
                     text: error.message,
-                    icon: 'error'
+                    icon: 'error',
+                    background: '#1a1d20',
+                    color: '#fff'
                 });
             }
         });
@@ -802,48 +798,384 @@ class ConfirmMovieSave {
 }
 
 // ========================================
-// 10. DRAFT CLEANUP ON MODAL CLOSE
+// 10. SERIES REVIEW MANAGER
 // ========================================
-class DraftCleanup {
+class SeriesReviewManager {
     constructor() {
-        this.mainModal = document.getElementById('addMovieModal');
-        this.isInModalFlow = false;
+        this.modal = document.getElementById('reviewSeriesModal');
+        if (this.modal) {
+            this.modal.addEventListener('show.bs.modal', () => this.loadDraftData());
+        }
+    }
+
+    async loadDraftData() {
+        console.log('Loading series draft data...');
         
-        if (this.mainModal) {
+        try {
+            const response = await fetch('admin-actions/get-series-draft.php');
+            const data = await response.json();
+
+            console.log('Draft response:', data);
+
+            if (data.status === 'ok') {
+                const draft = data.draft;
+                
+                console.log('Draft received:', draft);
+                console.log('Seasons:', draft.seasons);
+                console.log('Episodes:', draft.episodes);
+
+                // 1. Fill Title
+                const titleEl = document.getElementById('rev-series-title');
+                if (titleEl) {
+                    titleEl.textContent = draft.title || 'Untitled';
+                }
+
+                // 2. Fill Year
+                const yearEl = document.getElementById('rev-series-year');
+                if (yearEl) {
+                    yearEl.textContent = draft.release_year || '';
+                }
+
+                // 3. Fill Content Rating
+                const ratingEl = document.getElementById('rev-series-rating');
+                if (ratingEl) {
+                    ratingEl.textContent = draft.content_rating || 'NR';
+                }
+
+                // 4. Fill Genres with count
+                const genresEl = document.getElementById('rev-series-genres');
+                if (genresEl) {
+                    const genres = draft.genres || [];
+                    genresEl.textContent = genres.length > 0 ? genres.join(', ') : 'No genres selected';
+                }
+
+                // 5. Calculate and display series stats (FIXED LOGIC)
+                const statsEl = document.getElementById('rev-series-stats');
+                if (statsEl) {
+                    const seasons = draft.seasons || [];
+                    const genres = draft.genres || [];
+                    
+                    // FIXED: Count total episodes correctly
+                    let totalEpisodes = 0;
+                    
+                    // If episodes exist, count them properly
+                    if (draft.episodes && typeof draft.episodes === 'object') {
+                        // Episodes are stored by season number: { 1: [...], 2: [...] }
+                        Object.keys(draft.episodes).forEach(seasonNum => {
+                            const episodesArray = draft.episodes[seasonNum];
+                            if (Array.isArray(episodesArray)) {
+                                totalEpisodes += episodesArray.length;
+                            }
+                        });
+                    }
+                    
+                    console.log('Total episodes calculated:', totalEpisodes);
+                    
+                    statsEl.innerHTML = `
+                        <i class="bi bi-collection"></i> ${seasons.length}, 
+                        <i class="bi bi-play-circle"></i> ${totalEpisodes}, 
+                        <i class="bi bi-tags"></i> ${genres.length}
+                    `;
+                }
+
+                // 6. Fill Poster with error handling
+                const posterEl = document.getElementById('rev-series-poster');
+                if (posterEl) {
+                    const posterPath = draft.poster_path || 'assets/img/no-poster.jpg';
+                    posterEl.src = posterPath;
+                    posterEl.onerror = function() {
+                        this.src = 'assets/img/no-poster.jpg';
+                    };
+                }
+
+                // 7. Fill Backdrop
+                const backdropEl = document.getElementById('rev-series-backdrop');
+                if (backdropEl) {
+                    const backdropPath = draft.backdrop_path || 'assets/img/no-backdrop.jpg';
+                    backdropEl.src = backdropPath;
+                    backdropEl.onerror = function() {
+                        this.src = 'assets/img/no-backdrop.jpg';
+                    };
+                }
+
+                // 8. Fill Directors
+                const directorsEl = document.getElementById('rev-series-directors');
+                if (directorsEl) {
+                    const directors = draft.directors || [];
+                    directorsEl.textContent = directors.length > 0 ? directors.join(', ') : 'None listed';
+                }
+
+                // 9. Fill Writers
+                const writersEl = document.getElementById('rev-series-writers');
+                if (writersEl) {
+                    const writers = draft.writers || [];
+                    writersEl.textContent = writers.length > 0 ? writers.join(', ') : 'None listed';
+                }
+
+                // 10. Build Cast Grid
+                const castContainer = document.getElementById('rev-series-cast');
+                if (castContainer) {
+                    const castArray = draft.cast || [];
+                    
+                    if (castArray.length > 0) {
+                        castContainer.innerHTML = castArray.map(c => {
+                            const actorName = c.name || c.actor || 'Unknown Actor';
+                            const character = c.character || 'Unknown Role';
+                            const image = c.image || 'assets/img/no-actor.jpg';
+                            
+                            return `
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="d-flex align-items-center bg-dark p-2 rounded border border-secondary h-100">
+                                        <img src="${image}" 
+                                             class="rounded-circle me-2" 
+                                             style="width: 35px; height: 35px; object-fit: cover; border: 1px solid #444;"
+                                             onerror="this.src='assets/img/no-actor.jpg'">
+                                        <div class="overflow-hidden">
+                                            <div class="small fw-bold text-truncate" title="${actorName}">${actorName}</div>
+                                            <div class="extra-small text-white-50 text-truncate" title="${character}">${character}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        castContainer.innerHTML = '<div class="col-12 text-white-50 small">No cast added</div>';
+                    }
+                }
+
+                // 11. Build Seasons Accordion
+                const accordion = document.getElementById('rev-series-accordion');
+                if (accordion) {
+                    accordion.innerHTML = ''; 
+
+                    const seasons = draft.seasons || [];
+                    
+                    if (seasons.length > 0) {
+                        seasons.forEach((season, index) => {
+                            const seasonNumber = season.number || (index + 1);
+                            const seasonTitle = season.title || `Season ${seasonNumber}`;
+                            
+                            // Get episodes for THIS season
+                            const episodes = (draft.episodes && draft.episodes[seasonNumber]) ? draft.episodes[seasonNumber] : [];
+                            
+                            console.log(`Season ${seasonNumber} has ${episodes.length} episodes`);
+                            
+                            accordion.innerHTML += `
+                                <div class="accordion-item bg-dark text-white border-bottom border-secondary">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed bg-dark text-white shadow-none" 
+                                                type="button" 
+                                                data-bs-toggle="collapse" 
+                                                data-bs-target="#revCollapse${index}">
+                                            Season ${seasonNumber}: ${seasonTitle} (${episodes.length} Episodes)
+                                        </button>
+                                    </h2>
+                                    <div id="revCollapse${index}" 
+                                         class="accordion-collapse collapse" 
+                                         data-bs-parent="#rev-series-accordion">
+                                        <div class="accordion-body p-0">
+                                            <ul class="list-group list-group-flush">
+                                                ${episodes.length > 0 ? episodes.map(ep => `
+                                                    <li class="list-group-item bg-dark text-white-50 border-secondary d-flex justify-content-between align-items-center py-2">
+                                                        <span class="small">${ep.episode_number}. ${ep.title}</span>
+                                                        <span class="badge bg-secondary rounded-pill extra-small">${ep.duration || 0}m</span>
+                                                    </li>
+                                                `).join('') : '<li class="list-group-item bg-dark text-white-50 border-secondary small">No episodes added for this season.</li>'}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>`;
+                        });
+                    } else {
+                        accordion.innerHTML = '<div class="p-3 text-white-50 small">No seasons configured.</div>';
+                    }
+                }
+
+                console.log('Review modal loaded successfully!');
+
+            } else {
+                throw new Error(data.message || 'Failed to load draft');
+            }
+        } catch (error) {
+            console.error('Error in loadDraftData:', error);
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'Error Loading Draft',
+                text: 'Failed to load series data: ' + error.message,
+                background: '#1a1d20',
+                color: '#fff',
+                confirmButtonColor: '#d33'
+            });
+        }
+    }
+}
+
+// ========================================
+// 11. SERIES SEARCH MANAGER
+// ========================================
+class SeriesSearchManager {
+    constructor() {
+        this.searchForm = document.getElementById('seriesSearchForm');
+        this.searchInput = document.getElementById('seriesSearch');
+        this.genreFilter = document.getElementById('seriesGenreFilter');
+        this.yearFilter = document.getElementById('seriesYearFilter');
+        this.timeout = null;
+
+        if (this.searchForm) {
             this.init();
         }
     }
 
     init() {
-        // Track when we're in the modal flow
+        // Real-time search with 500ms delay
+        if (this.searchInput) {
+            this.searchInput.addEventListener('input', () => {
+                clearTimeout(this.timeout);
+                this.timeout = setTimeout(() => this.searchForm.submit(), 500);
+            });
+        }
+
+        // Instant filter on dropdown change
+        if (this.genreFilter) {
+            this.genreFilter.addEventListener('change', () => this.applySeriesFilters());
+        }
+
+        if (this.yearFilter) {
+            this.yearFilter.addEventListener('change', () => this.applySeriesFilters());
+        }
+    }
+
+    applySeriesFilters() {
+        const genre = this.genreFilter ? this.genreFilter.value : '';
+        const year = this.yearFilter ? this.yearFilter.value : '';
+        const search = this.searchInput ? this.searchInput.value : '';
+        
+        let url = '?section=series&page=1';
+        
+        if (search) {
+            url += '&series_search=' + encodeURIComponent(search);
+        }
+        if (genre) {
+            url += '&series_genre=' + encodeURIComponent(genre);
+        }
+        if (year) {
+            url += '&series_year=' + encodeURIComponent(year);
+        }
+        
+        window.location.href = url;
+    }
+
+    destroy() {
+        clearTimeout(this.timeout);
+    }
+}
+
+// ========================================
+// 12. CONFIRM SERIES SAVE
+// ========================================
+class ConfirmSeriesSave {
+    constructor() {
+        this.btn = document.getElementById('publishSeriesBtn');
+        if (this.btn) {
+            this.init();
+        }
+    }
+
+    init() {
+        this.btn.addEventListener('click', async () => {
+            this.btn.disabled = true;
+            const spinner = document.getElementById('publishSeriesSpinner');
+            if (spinner) spinner.classList.remove('d-none');
+
+            try {
+                const response = await fetch('admin-actions/commit-series.php', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    await Swal.fire({
+                        title: 'Success!',
+                        text: 'Series Published Successfully!',
+                        icon: 'success',
+                        background: '#1a1d20',
+                        color: '#fff',
+                        confirmButtonColor: '#0d6efd'
+                    });
+                    window.location.reload();
+                } else {
+                    throw new Error(data.error || 'Failed to publish series');
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.message,
+                    icon: 'error',
+                    background: '#1a1d20',
+                    color: '#fff'
+                });
+            } finally {
+                this.btn.disabled = false;
+                const spinner = document.getElementById('publishSeriesSpinner');
+                if (spinner) spinner.classList.add('d-none');
+            }
+        });
+    }
+}
+
+// ========================================
+// 13. DRAFT CLEANUP ON MODAL CLOSE
+// ========================================
+class DraftCleanup {
+    constructor() {
+        this.movieModal = document.getElementById('addMovieModal');
+        this.seriesModal = document.getElementById('addSeriesModal');
+        this.isInModalFlow = false;
+        
+        if (this.movieModal || this.seriesModal) {
+            this.init();
+        }
+    }
+
+    init() {
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('show.bs.modal', () => {
                 this.isInModalFlow = true;
             });
         });
 
-        // Only clear when truly exiting
-        this.mainModal.addEventListener('hidden.bs.modal', async () => {
-            // Wait for modal transitions to complete
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // If no other modal is showing, we've exited the flow
-            if (!document.querySelector('.modal.show')) {
-                this.isInModalFlow = false;
-                await this.clearDraft();
-            }
-        });
+        if (this.movieModal) {
+            this.movieModal.addEventListener('hidden.bs.modal', async () => {
+                await this.handleModalClose();
+            });
+        }
+
+        if (this.seriesModal) {
+            this.seriesModal.addEventListener('hidden.bs.modal', async () => {
+                await this.handleModalClose();
+            });
+        }
+    }
+
+    async handleModalClose() {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        if (!document.querySelector('.modal.show')) {
+            this.isInModalFlow = false;
+            await this.clearDraft();
+        }
     }
 
     async clearDraft() {
         try {
-            // Clear server-side draft
             await fetch('admin-actions/clear-movie-draft.php');
+            await fetch('admin-actions/clear-series-draft.php');
 
-            // Reset all forms
             const forms = [
                 'addMovieForm', 'movieGenresForm', 'movieTrailerForm',
-                'movieDirectorsForm', 'movieWritersForm', 'movieCastForm'
+                'movieDirectorsForm', 'movieWritersForm', 'movieCastForm',
+                'addSeriesForm', 'seriesGenresForm', 'seriesTrailerForm', 
+                'seriesSeasonsForm', 'seriesEpisodesForm', 'seriesCastForm',
+                'seriesDirectorsForm', 'seriesWritersForm'
             ];
 
             forms.forEach(id => {
@@ -851,11 +1183,9 @@ class DraftCleanup {
                 if (form) {
                     form.reset();
                     
-                    // Clear textareas
                     const overview = form.querySelector('textarea[name="overview"]');
                     if (overview) overview.value = '';
                     
-                    // Clear hidden fields
                     form.querySelectorAll('input[type="hidden"]').forEach(hidden => {
                         hidden.value = '';
                     });
@@ -870,7 +1200,338 @@ class DraftCleanup {
 }
 
 // ========================================
-// 11. SIMPLE MODAL FORMS
+// 14. SERIES DYNAMIC ROW MANAGERS
+// ========================================
+function addCastRow(actor = '', character = '', image = '') {
+    const container = document.getElementById('cast-container') || document.getElementById('seriesCastContainer');
+    if (!container) {
+        console.error('Cast container not found');
+        return;
+    }
+    
+    const div = document.createElement('div');
+    div.className = 'row g-2 mb-2 cast-row';
+    div.innerHTML = `
+        <div class="col-md-4">
+            <input type="text" name="actors[]" class="form-control bg-dark text-white border-secondary" 
+                   placeholder="Actor name" value="${actor}" required>
+        </div>
+        <div class="col-md-4">
+            <input type="text" name="characters[]" class="form-control bg-dark text-white border-secondary" 
+                   placeholder="Character name" value="${character}" required>
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="actor_images[]" class="form-control bg-dark text-white border-secondary" 
+                   placeholder="Image path" value="${image}">
+        </div>
+        <div class="col-md-1 d-grid">
+            <button type="button" class="btn btn-outline-danger" onclick="removeCastRow(this)">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function removeCastRow(btn) {
+    const container = btn.closest('.cast-row').parentElement;
+    const rows = container.querySelectorAll('.cast-row');
+    
+    if (rows.length > 1) {
+        btn.closest('.cast-row').remove();
+    } else {
+        // Just clear the inputs if it's the last row
+        btn.closest('.cast-row').querySelectorAll('input').forEach(input => input.value = '');
+    }
+}
+
+function addSeasonRow() {
+    const container = document.getElementById('seasons-container');
+    if (!container) return;
+
+    const rows = container.querySelectorAll('.season-row');
+    const currentCount = rows.length;
+    
+    const div = document.createElement('div');
+    div.className = 'row g-2 mb-3 season-row align-items-end';
+    div.innerHTML = `
+        <div class="col-md-2">
+            <label class="form-label small text-white-50">Season #*</label>
+            <input type="number" name="season_numbers[]" class="form-control bg-dark text-white border-secondary" 
+                   value="${currentCount + 1}" required>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small text-white-50">Season Title (Optional)</label>
+            <input type="text" name="season_titles[]" class="form-control bg-dark text-white border-secondary" 
+                   placeholder="e.g. Genesis">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small text-white-50">Release Year</label>
+            <input type="number" name="season_years[]" class="form-control bg-dark text-white border-secondary" 
+                   placeholder="2024" required>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small text-white-50">Poster Path *</label>
+            <input type="text" name="season_posters[]" class="form-control bg-dark text-white border-secondary" 
+                   placeholder="assets/img/" required>
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-outline-danger remove-season-btn" onclick="removeSeasonRow(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function removeSeasonRow(btn) {
+    const container = document.getElementById('seasons-container');
+    const rows = container.querySelectorAll('.season-row');
+    
+    if (rows.length > 1) {
+        btn.closest('.season-row').remove();
+    } else {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Action Denied',
+            text: 'You must have at least one season.',
+            timer: 2000,
+            showConfirmButton: false,
+            background: '#1a1d20',
+            color: '#fff'
+        });
+    }
+}
+
+function addEpisodeRow() {
+    const container = document.getElementById('episodes-container');
+    if (!container) return;
+
+    const rows = container.querySelectorAll('.episode-row');
+    const currentCount = rows.length;
+    
+    const div = document.createElement('div');
+    div.className = 'episode-row border border-secondary p-3 rounded mb-3 position-relative';
+    div.innerHTML = `
+        <button type="button" 
+                class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2 remove-episode-btn" 
+                onclick="removeEpisodeRow(this)">
+            <i class="bi bi-x"></i>
+        </button>
+        <div class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label small text-white-50">Ep #</label>
+                <input type="number" name="ep_numbers[]" class="form-control bg-dark text-white border-secondary" 
+                       value="${currentCount + 1}" required>
+            </div>
+            <div class="col-md-7">
+                <label class="form-label small text-white-50">Episode Title *</label>
+                <input type="text" name="ep_titles[]" class="form-control bg-dark text-white border-secondary" 
+                       placeholder="e.g. Pilot" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-white-50">Duration (Min)</label>
+                <input type="number" name="ep_durations[]" class="form-control bg-dark text-white border-secondary" 
+                       placeholder="45" required>
+            </div>
+            <div class="col-12">
+                <label class="form-label small text-white-50">Episode Synopsis</label>
+                <textarea name="ep_overviews[]" class="form-control bg-dark text-white border-secondary" rows="2"></textarea>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label small text-white-50">Still Path (Thumbnail)</label>
+                <input type="text" name="ep_stills[]" class="form-control bg-dark text-white border-secondary" 
+                       placeholder="assets/img/series/s1e1.jpg">
+            </div>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function removeEpisodeRow(btn) {
+    const container = document.getElementById('episodes-container');
+    const rows = container.querySelectorAll('.episode-row');
+    
+    if (rows.length > 1) {
+        btn.closest('.episode-row').remove();
+    } else {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Cannot Remove',
+            text: 'At least one episode is required.',
+            timer: 2000,
+            showConfirmButton: false,
+            background: '#1a1d20',
+            color: '#fff'
+        });
+    }
+}
+
+// Make functions globally accessible
+window.addCastRow = addCastRow;
+window.removeCastRow = removeCastRow;
+window.addSeasonRow = addSeasonRow;
+window.removeSeasonRow = removeSeasonRow;
+window.addEpisodeRow = addEpisodeRow;
+window.removeEpisodeRow = removeEpisodeRow;
+
+
+class SeriesDynamicRows {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        // The global functions handle the logic
+        // This class now just handles the button clicks via event delegation
+        this.setupEventDelegation();
+    }
+
+    setupEventDelegation() {
+        // Handle add director button
+        const addDirBtn = document.getElementById('addSeriesDirectorBtn');
+        if (addDirBtn) {
+            addDirBtn.addEventListener('click', () => this.addDirectorRow());
+        }
+
+        // Handle add writer button
+        const addWriterBtn = document.getElementById('addSeriesWriterBtn');
+        if (addWriterBtn) {
+            addWriterBtn.addEventListener('click', () => this.addWriterRow());
+        }
+
+        // Handle add cast button (if there's a specific button with ID)
+        const addCastBtn = document.getElementById('addSeriesCastBtn');
+        if (addCastBtn) {
+            addCastBtn.addEventListener('click', () => window.addCastRow());
+        }
+    }
+
+    addDirectorRow(name = '') {
+        const container = document.getElementById('seriesDirectorsContainer');
+        if (!container) return;
+        
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2 series-director-row';
+        div.innerHTML = `
+            <input type="text" name="directors[]" class="form-control bg-dark text-white border-secondary" 
+                   placeholder="Director name" value="${name}" required>
+            <button type="button" class="btn btn-outline-danger remove-series-director">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+        container.appendChild(div);
+    }
+
+    addWriterRow(name = '') {
+        const container = document.getElementById('seriesWritersContainer');
+        if (!container) return;
+        
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2 series-writer-row';
+        div.innerHTML = `
+            <input type="text" name="writers[]" class="form-control bg-dark text-white border-secondary" 
+                   placeholder="Writer name" value="${name}" required>
+            <button type="button" class="btn btn-outline-danger remove-series-writer">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+        container.appendChild(div);
+    }
+
+    removeRow(btn, containerSelector, rowClass, minRows = 1) {
+        const container = document.querySelector(containerSelector);
+        if (!container) return;
+
+        const rows = container.querySelectorAll(`.${rowClass}`);
+        if (rows.length > minRows) {
+            btn.closest(`.${rowClass}`).remove();
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Cannot Remove',
+                text: `At least ${minRows} entry is required.`,
+                timer: 2000,
+                showConfirmButton: false,
+                background: '#1a1d20',
+                color: '#fff'
+            });
+        }
+    }
+}
+
+// ========================================
+// 15. FILTER MANAGER
+// ========================================
+class FilterManager {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        const genreFilter = document.getElementById('movieGenreFilter');
+        const yearFilter = document.getElementById('movieYearFilter');
+
+        if (genreFilter) {
+            genreFilter.addEventListener('change', () => this.applyFilters());
+        }
+
+        if (yearFilter) {
+            yearFilter.addEventListener('change', () => this.applyFilters());
+        }
+    }
+
+    applyFilters() {
+        const genreFilter = document.getElementById('movieGenreFilter');
+        const yearFilter = document.getElementById('movieYearFilter');
+        const searchInput = document.getElementById('movieSearch');
+
+        if (!genreFilter || !yearFilter || !searchInput) return;
+
+        const genre = genreFilter.value;
+        const year = yearFilter.value;
+        const search = searchInput.value;
+        
+        let url = '?section=movies&page=1';
+        
+        if (search) url += '&search=' + encodeURIComponent(search);
+        if (genre) url += '&genre=' + encodeURIComponent(genre);
+        if (year) url += '&year=' + encodeURIComponent(year);
+        
+        window.location.href = url;
+    }
+}
+
+// ========================================
+// 16. REAL-TIME MOVIE SEARCH
+// ========================================
+class RealTimeMovieSearch {
+    constructor() {
+        this.searchInput = document.getElementById('movieSearch');
+        this.searchForm = document.getElementById('searchForm');
+        this.timeout = null;
+
+        if (this.searchInput && this.searchForm) {
+            this.init();
+        }
+    }
+
+    init() {
+        this.searchInput.addEventListener('input', () => {
+            clearTimeout(this.timeout);
+            this.timeout = setTimeout(() => {
+                this.searchForm.submit();
+            }, 500);
+        });
+    }
+
+    destroy() {
+        clearTimeout(this.timeout);
+    }
+}
+
+// ========================================
+// 17. SIMPLE MODAL FORMS
 // ========================================
 function setupSimpleModalForm(formId, modalId, successMessage) {
     const form = document.getElementById(formId);
@@ -879,38 +1540,389 @@ function setupSimpleModalForm(formId, modalId, successMessage) {
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         alert(successMessage);
-        bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById(modalId));
+        if (modalInstance) modalInstance.hide();
         form.reset();
     });
 }
 
 // ========================================
-// 12. INITIALIZE EVERYTHING
+// 18. GENRE VALIDATION
+// ========================================
+class GenreValidation {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        this.setupMovieGenreValidation();
+        this.setupSeriesGenreValidation();
+    }
+
+    setupMovieGenreValidation() {
+        const form = document.getElementById('movieGenresForm');
+        if (!form) return;
+
+        form.addEventListener('submit', (e) => {
+            const checkboxes = form.querySelectorAll('input[name="genres[]"]');
+            const errorMsg = document.getElementById('genre-error');
+            const isChecked = Array.from(checkboxes).some(cb => cb.checked);
+
+            if (!isChecked) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                
+                if (errorMsg) errorMsg.classList.remove('d-none');
+                
+                const modalContent = form.closest('.modal-content');
+                if (modalContent) {
+                    modalContent.classList.add('shake-animation');
+                    setTimeout(() => modalContent.classList.remove('shake-animation'), 500);
+                }
+            } else {
+                if (errorMsg) errorMsg.classList.add('d-none');
+            }
+        });
+    }
+
+    setupSeriesGenreValidation() {
+        const form = document.getElementById('seriesGenresForm');
+        if (!form) return;
+
+        form.addEventListener('submit', (e) => {
+            const checkboxes = form.querySelectorAll('input[name="genres[]"]');
+            const errorMsg = document.getElementById('series-genre-error');
+            const isChecked = Array.from(checkboxes).some(cb => cb.checked);
+
+            if (!isChecked) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                
+                if (errorMsg) errorMsg.classList.remove('d-none');
+                
+                const modalContent = form.closest('.modal-content');
+                if (modalContent) {
+                    modalContent.classList.add('shake-animation');
+                    setTimeout(() => modalContent.classList.remove('shake-animation'), 500);
+                }
+            } else {
+                if (errorMsg) errorMsg.classList.add('d-none');
+            }
+        });
+    }
+}
+
+// ========================================
+// 19. UNIVERSAL EVENT DELEGATION
+// ========================================
+class UniversalEventHandler {
+    constructor() {
+        this.seriesRows = new SeriesDynamicRows();
+        this.init();
+    }
+
+    init() {
+        document.addEventListener('click', (e) => {
+            // Edit Movie - Directors
+            if (e.target.closest('#edit_add_director_btn')) {
+                addEditDirectorRow('');
+            }
+            
+            // Edit Movie - Writers
+            if (e.target.closest('#edit_add_writer_btn')) {
+                addEditWriterRow('');
+            }
+            
+            // Edit Movie - Cast
+            if (e.target.closest('#edit_add_cast_btn')) {
+                addEditCastRow('', '', '');
+            }
+            
+            // Remove Edit Director
+            if (e.target.closest('.remove-edit-director')) {
+                const container = document.getElementById('edit_directors_container');
+                if (container && container.querySelectorAll('.edit-director-row').length > 1) {
+                    e.target.closest('.edit-director-row').remove();
+                }
+            }
+            
+            // Remove Edit Writer
+            if (e.target.closest('.remove-edit-writer')) {
+                const container = document.getElementById('edit_writers_container');
+                if (container && container.querySelectorAll('.edit-writer-row').length > 1) {
+                    e.target.closest('.edit-writer-row').remove();
+                }
+            }
+            
+            // Remove Edit Cast
+            if (e.target.closest('.remove-edit-cast')) {
+                const container = document.getElementById('edit_cast_container');
+                if (container && container.querySelectorAll('.edit-cast-row').length > 1) {
+                    e.target.closest('.edit-cast-row').remove();
+                }
+            }
+
+            // Remove Series Director
+            if (e.target.closest('.remove-series-director')) {
+                this.seriesRows.removeRow(e.target, '#seriesDirectorsContainer', 'series-director-row', 1);
+            }
+            
+            // Remove Series Writer
+            if (e.target.closest('.remove-series-writer')) {
+                this.seriesRows.removeRow(e.target, '#seriesWritersContainer', 'series-writer-row', 1);
+            }
+            
+            // Remove Series/Movie Cast
+            if (e.target.closest('.remove-cast')) {
+                const container = e.target.closest('.remove-cast').closest('.row').parentElement;
+                if (container && container.querySelectorAll('.cast-row').length > 1) {
+                    e.target.closest('.cast-row').remove();
+                }
+            }
+
+            // Remove Season
+            if (e.target.closest('.remove-season-btn')) {
+                this.seriesRows.removeRow(e.target, '#seasons-container', 'season-row', 1);
+            }
+
+            // Remove Episode
+            if (e.target.closest('.remove-episode-btn')) {
+                this.seriesRows.removeRow(e.target, '#episodes-container', 'episode-row', 1);
+            }
+        });
+    }
+}
+
+// reset draft
+class SeriesDraftResetter {
+    constructor() {
+        this.addSeriesModal = document.getElementById('addSeriesModal');
+        this.isNewSession = true;
+        
+        if (this.addSeriesModal) {
+            this.init();
+        }
+    }
+
+    init() {
+        // When the FIRST modal opens
+        this.addSeriesModal.addEventListener('show.bs.modal', async () => {
+            if (this.isNewSession) {
+                try {
+                    // Clear server-side draft
+                    await fetch('admin-actions/clear-series-draft.php', { method: 'POST' });
+                    
+                    // Reset ALL series forms
+                    this.resetAllForms();
+                    
+                    console.log('Series draft cleared - fresh start');
+                } catch (error) {
+                    console.error('Failed to clear draft:', error);
+                }
+                
+                this.isNewSession = false;
+            } else {
+                console.log('Returning to first modal - keeping draft data');
+            }
+        });
+        
+        // Reset the flag when modal is fully closed
+        this.addSeriesModal.addEventListener('hidden.bs.modal', () => {
+            setTimeout(() => {
+                if (!document.querySelector('.modal.show')) {
+                    this.isNewSession = true;
+                    console.log('Workflow ended - next open will be fresh');
+                }
+            }, 500);
+        });
+    }
+
+    resetAllForms() {
+        // List of all series form IDs
+        const formIds = [
+            'addSeriesForm',
+            'seriesGenresForm', 
+            'seriesTrailerForm',
+            'seriesSeasonsForm',
+            'seriesEpisodesForm',
+            'seriesCastForm',
+            'seriesDirectorsForm',
+            'seriesWritersForm'
+        ];
+
+        formIds.forEach(formId => {
+            const form = document.getElementById(formId);
+            if (form) {
+                form.reset();
+            }
+        });
+
+        // Clear dynamic containers
+        this.clearDynamicContainers();
+    }
+
+    clearDynamicContainers() {
+        // Clear and reset cast container
+        const castContainer = document.getElementById('cast-container') || 
+                             document.getElementById('seriesCastContainer');
+        if (castContainer) {
+            castContainer.innerHTML = `
+                <div class="row g-2 mb-2 cast-row">
+                    <div class="col-md-4">
+                        <input type="text" name="actors[]" class="form-control bg-dark text-white border-secondary" 
+                               placeholder="Actor name" required>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" name="characters[]" class="form-control bg-dark text-white border-secondary" 
+                               placeholder="Character name" required>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="actor_images[]" class="form-control bg-dark text-white border-secondary" 
+                               placeholder="Image path">
+                    </div>
+                    <div class="col-md-1 d-grid">
+                        <button type="button" class="btn btn-outline-danger" onclick="removeCastRow(this)">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Clear and reset directors container
+        const directorsContainer = document.getElementById('seriesDirectorsContainer');
+        if (directorsContainer) {
+            directorsContainer.innerHTML = `
+                <div class="input-group mb-2 series-director-row">
+                    <input type="text" name="directors[]" class="form-control bg-dark text-white border-secondary" 
+                           placeholder="Director name" required>
+                    <button type="button" class="btn btn-outline-danger remove-series-director">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        // Clear and reset writers container
+        const writersContainer = document.getElementById('seriesWritersContainer');
+        if (writersContainer) {
+            writersContainer.innerHTML = `
+                <div class="input-group mb-2 series-writer-row">
+                    <input type="text" name="writers[]" class="form-control bg-dark text-white border-secondary" 
+                           placeholder="Writer name" required>
+                    <button type="button" class="btn btn-outline-danger remove-series-writer">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        // Clear seasons container
+        const seasonsContainer = document.getElementById('seasons-container');
+        if (seasonsContainer) {
+            seasonsContainer.innerHTML = `
+                <div class="row g-2 mb-3 season-row align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label small text-white-50">Season #*</label>
+                        <input type="number" name="season_numbers[]" class="form-control bg-dark text-white border-secondary" value="1" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-white-50">Season Title (Optional)</label>
+                        <input type="text" name="season_titles[]" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Genesis">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-white-50">Release Year</label>
+                        <input type="number" name="season_years[]" class="form-control bg-dark text-white border-secondary" placeholder="2024" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-white-50">Poster Path *</label>
+                        <input type="text" name="season_posters[]" class="form-control bg-dark text-white border-secondary" placeholder="assets/img/" required>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-outline-danger remove-season-btn d-none" onclick="removeSeasonRow(this)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Clear episodes container
+        const episodesContainer = document.getElementById('episodes-container');
+        if (episodesContainer) {
+            episodesContainer.innerHTML = `
+                <div class="episode-row border border-secondary p-3 rounded mb-3 position-relative">
+                    <button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2 remove-episode-btn d-none" onclick="removeEpisodeRow(this)">
+                        <i class="bi bi-x"></i>
+                    </button>
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label small text-white-50">Ep #</label>
+                            <input type="number" name="ep_numbers[]" class="form-control bg-dark text-white border-secondary" value="1" required>
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label small text-white-50">Episode Title *</label>
+                            <input type="text" name="ep_titles[]" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Pilot" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-white-50">Duration (Min)</label>
+                            <input type="number" name="ep_durations[]" class="form-control bg-dark text-white border-secondary" placeholder="45">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small text-white-50">Episode Synopsis</label>
+                            <textarea name="ep_overviews[]" class="form-control bg-dark text-white border-secondary" rows="2"></textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small text-white-50">Still Path (Thumbnail)</label>
+                            <input type="text" name="ep_stills[]" class="form-control bg-dark text-white border-secondary" placeholder="assets/img/series/s1e1.jpg">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        console.log('All dynamic containers cleared');
+    }
+}
+
+
+// ========================================
+// 20. INITIALIZE EVERYTHING
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Core Navigation
+    // Core Navigation & Search
     new SectionManager();
     new MobileSidebar();
-
-    // Search with explicit table body IDs
     new SearchManager([
         { inputId: 'movieSearch', tableBodyId: 'moviesTableBody' },
         { inputId: 'seriesSearch', tableBodyId: 'seriesTableBody' },
         { inputId: 'userSearch', tableBodyId: 'usersTableBody' },
         { inputId: 'reviewSearch', tableBodyId: 'reviewsTableBody' }
     ]);
+    new SeriesDraftResetter();
 
-    // Multi-step modal flow
+    // Multi-step modals
     new MultiStepModalHandler([
+        // Movie Modals
         { formId: 'addMovieForm', currentModalId: 'addMovieModal', nextModalId: 'addMovieGenresModal' },
         { formId: 'movieGenresForm', currentModalId: 'addMovieGenresModal', nextModalId: 'addMovieTrailerModal' },
         { formId: 'movieTrailerForm', currentModalId: 'addMovieTrailerModal', nextModalId: 'addMovieDirectorsModal' },
         { formId: 'movieDirectorsForm', currentModalId: 'addMovieDirectorsModal', nextModalId: 'addMovieWritersModal' },
         { formId: 'movieWritersForm', currentModalId: 'addMovieWritersModal', nextModalId: 'addMovieCastModal' },
-        { formId: 'movieCastForm', currentModalId: 'addMovieCastModal', nextModalId: 'reviewMovieDraftModal' }
+        { formId: 'movieCastForm', currentModalId: 'addMovieCastModal', nextModalId: 'reviewMovieDraftModal' },
+
+        // Series Modals
+        { formId: 'addSeriesForm', currentModalId: 'addSeriesModal', nextModalId: 'addSeriesGenresModal' },
+        { formId: 'seriesGenresForm', currentModalId: 'addSeriesGenresModal', nextModalId: 'addSeriesTrailerModal' },
+        { formId: 'seriesTrailerForm', currentModalId: 'addSeriesTrailerModal', nextModalId: 'addSeriesSeasonsModal' },
+        { formId: 'seriesSeasonsForm', currentModalId: 'addSeriesSeasonsModal', nextModalId: 'addSeriesEpisodesModal' },
+        { formId: 'seriesEpisodesForm', currentModalId: 'addSeriesEpisodesModal', nextModalId: 'addSeriesCastModal' },
+        { formId: 'seriesCastForm', currentModalId: 'addSeriesCastModal', nextModalId: 'addSeriesDirectorsModal' },
+        { formId: 'seriesDirectorsForm', currentModalId: 'addSeriesDirectorsModal', nextModalId: 'addSeriesWritersModal' },
+        { formId: 'seriesWritersForm', currentModalId: 'addSeriesWritersModal', nextModalId: 'reviewSeriesModal' }
     ]);
 
-    // Dynamic lists
+    // Dynamic lists for Movies
     const directorTpl = `<div class="input-group mb-2 director-row">
         <input type="text" name="directors[]" class="form-control bg-dark text-white border-secondary" placeholder="Director name" required>
         <button type="button" class="btn btn-outline-danger"><i class="bi bi-x"></i></button>
@@ -934,30 +1946,31 @@ document.addEventListener('DOMContentLoaded', () => {
         { btnId: 'addCastBtn', containerId: 'castContainer', rowClass: 'cast-row', template: castTpl }
     ]);
 
-    // Draft review and save
+    // Draft management
     new DraftReviewModal();
     new ConfirmMovieSave();
+    new SeriesReviewManager();
+    new ConfirmSeriesSave();
     new DraftCleanup();
 
+    // Series functionality
+    new SeriesDynamicRows();
+    new SeriesSearchManager();
+
+    // Filters and search
+    new FilterManager();
+    new RealTimeMovieSearch();
+
+    // Genre validation
+    new GenreValidation();
+
+    // Universal event handler
+    new UniversalEventHandler();
+
     // Simple modal forms
-    // setupSimpleModalForm('editMovieForm', 'editMovieModal', 'Movie updated successfully!');
-    setupSimpleModalForm('addSeriesForm', 'addSeriesModal', 'Series added successfully!');
     setupSimpleModalForm('editSeriesForm', 'editSeriesModal', 'Series updated successfully!');
     setupSimpleModalForm('addUserForm', 'addUserModal', 'User added successfully!');
     setupSimpleModalForm('editUserForm', 'editUserModal', 'User updated successfully!');
-
-    // Filter handlers
-    document.getElementById('movieGenreFilter')?.addEventListener('change', (e) => {
-        console.log('Filtering by genre:', e.target.value);
-    });
-
-    document.getElementById('movieYearFilter')?.addEventListener('change', (e) => {
-        console.log('Filtering by year:', e.target.value);
-    });
-
-    // Bootstrap tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
 
     // Initialize edit form handler
     const editFormElement = document.getElementById('editMovieForm');
@@ -965,131 +1978,22 @@ document.addEventListener('DOMContentLoaded', () => {
         editFormElement.addEventListener('submit', handleEditFormSubmit);
     }
 
-    document.addEventListener('click', function(e) {
-        // Add director
-        if (e.target.id === 'edit_add_director_btn' || e.target.closest('#edit_add_director_btn')) {
-            addEditDirectorRow('');
-        }
-        
-        // Add writer
-        if (e.target.id === 'edit_add_writer_btn' || e.target.closest('#edit_add_writer_btn')) {
-            addEditWriterRow('');
-        }
-        
-        // Add cast
-        if (e.target.id === 'edit_add_cast_btn' || e.target.closest('#edit_add_cast_btn')) {
-            addEditCastRow('', '', '');
-        }
-        
-        // Remove director
-        if (e.target.closest('.remove-edit-director')) {
-            const container = document.getElementById('edit_directors_container');
-            if (container.querySelectorAll('.edit-director-row').length > 1) {
-                e.target.closest('.edit-director-row').remove();
-            }
-        }
-        
-        // Remove writer
-        if (e.target.closest('.remove-edit-writer')) {
-            const container = document.getElementById('edit_writers_container');
-            if (container.querySelectorAll('.edit-writer-row').length > 1) {
-                e.target.closest('.edit-writer-row').remove();
-            }
-        }
-        
-        // Remove cast
-        if (e.target.closest('.remove-edit-cast')) {
-            const container = document.getElementById('edit_cast_container');
-            if (container.querySelectorAll('.edit-cast-row').length > 1) {
-                e.target.closest('.edit-cast-row').remove();
-            }
-        }
-    });
-
-});
-
-// for genre
-document.getElementById('movieGenresForm').addEventListener('submit', function(e) {
-    // Get all checkboxes inside the form
-    const checkboxes = this.querySelectorAll('input[name="genres[]"]');
-    const errorMsg = document.getElementById('genre-error');
-    
-    // Check if at least one is checked
-    const isChecked = Array.from(checkboxes).some(cb => cb.checked);
-
-    if (!isChecked) {
-        // Stop the form from submitting
-        e.preventDefault();
-        
-        // Show the error message
-        errorMsg.classList.remove('d-none');
-        
-        // Optional: shake the modal to grab attention
-        this.closest('.modal-content').classList.add('shake-animation');
-        setTimeout(() => {
-            this.closest('.modal-content').classList.remove('shake-animation');
-        }, 500);
-    } else {
-        // Hide error message if they finally picked one
-        errorMsg.classList.add('d-none');
-    }
-});
-
-// Real-time search functionality
-let searchTimeout;
-const movieSearchInput = document.getElementById('movieSearch');
-
-if (movieSearchInput) {
-    movieSearchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(function() {
-            document.getElementById('searchForm').submit();
-        }, 500); // Wait 500ms after user stops typing
-    });
-}
-
-// Apply filters function
-function applyFilters() {
-    const genre = document.getElementById('movieGenreFilter').value;
-    const year = document.getElementById('movieYearFilter').value;
-    const search = document.getElementById('movieSearch').value;
-    
-    let url = '?section=movies&page=1';
-    
-    if (search) {
-        url += '&search=' + encodeURIComponent(search);
-    }
-    if (genre) {
-        url += '&genre=' + encodeURIComponent(genre);
-    }
-    if (year) {
-        url += '&year=' + encodeURIComponent(year);
-    }
-    
-    window.location.href = url;
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Genre filter
-    const genreFilter = document.getElementById('movieGenreFilter');
-    if (genreFilter) {
-        genreFilter.addEventListener('change', applyFilters);
-    }
-    
-    // Year filter
-    const yearFilter = document.getElementById('movieYearFilter');
-    if (yearFilter) {
-        yearFilter.addEventListener('change', applyFilters);
-    }
-    
-    // Start carousel immediately on page load
+    // Bootstrap carousel
     const carouselEl = document.getElementById('featuredSlider');
-    if (carouselEl) {
-        var carousel = new bootstrap.Carousel(carouselEl, {
+    if (carouselEl && typeof bootstrap !== 'undefined') {
+        const carousel = new bootstrap.Carousel(carouselEl, {
             interval: 4000,
             ride: 'carousel',
             pause: 'hover'
         });
         carousel.cycle();
     }
+
+    // Bootstrap tooltips
+    if (typeof bootstrap !== 'undefined') {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+    }
+
+    console.log('Admin Dashboard initialized successfully');
 });
